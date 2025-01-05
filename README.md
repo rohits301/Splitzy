@@ -21,7 +21,6 @@
       - [Backend](#backend)
       - [Database](#database)
   * [Configuration and Setup](#configuration-and-setup)
-  * [License](#license)
 
 
 ## Introduction
