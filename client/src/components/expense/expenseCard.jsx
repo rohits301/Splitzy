@@ -1,13 +1,12 @@
-import { Grid, Box, styled, Typography, autocompleteClasses, Popover, MenuList, MenuItem, ListItemIcon, ListItemText, Modal, Stack, Button } from '@mui/material'
-import React, { useState } from 'react'
+import { Grid, Box, styled, Typography, Popover, MenuList, MenuItem, ListItemIcon, ListItemText, Modal, Stack, Button } from '@mui/material';
+import React, { useState } from 'react';
 import useResponsive from '../../theme/hooks/useResponsive';
 import PropTypes from 'prop-types';
-import { convertToCurrency, currencyFind, getMonthMMM } from '../../utils/helper';
+import { convertToCurrency, currencyFind, getMonthMMM, zeroPad } from '../../utils/helper'; // Import zeroPad
 import Iconify from '../Iconify';
 import { Link as RouterLink } from 'react-router-dom';
 import dataConfig from '../../config.json';
 import { deleteExpenseService } from '../../services/expenseServices';
-
 
 const DateBoxStyle = styled('div')(({ theme }) => ({
     width: 85,
@@ -24,7 +23,7 @@ ExpenseCard.propTypes = {
     expensePerMember: PropTypes.number,
     expenseOwner: PropTypes.string,
     currencyType: PropTypes.string
-}
+};
 
 const modelStyle = {
     position: 'absolute',
@@ -37,11 +36,10 @@ const modelStyle = {
     borderRadius: 1
 };
 
-
 export default function ExpenseCard({ expenseId, expenseName, expenseAmount, expensePerMember, expenseOwner, expenseDate, currencyType }) {
     const mdUp = useResponsive('up', 'md');
     const [anchorEl, setAnchorEl] = useState(null);
-    const [deleteConfirm, setDeleteConfirm] = useState(false)
+    const [deleteConfirm, setDeleteConfirm] = useState(false);
 
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
@@ -51,18 +49,18 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
         setAnchorEl(null);
     };
 
-    const deleteConfirmOpen = () =>{
-        setDeleteConfirm(true)
-      }
-      const deleteConfirmClose = () =>{
-        setDeleteConfirm(false)
-      }
+    const deleteConfirmOpen = () => {
+        setDeleteConfirm(true);
+    };
+    const deleteConfirmClose = () => {
+        setDeleteConfirm(false);
+    };
 
-      const apiDeleteCall = async() => {
-        await deleteExpenseService({id: expenseId})
-        window.location.reload()
-        deleteConfirmClose()
-      }
+    const apiDeleteCall = async () => {
+        await deleteExpenseService({ id: expenseId });
+        window.location.reload();
+        deleteConfirmClose();
+    };
 
     const open = Boolean(anchorEl);
     const id = open ? 'simple-popover' : undefined;
@@ -80,13 +78,12 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
             <Grid item xs={2}>
                 <DateBoxStyle>
                     <Typography variant="body2" sx={{
-
                         fontSize: 28,
                         top: 7,
                         left: 20,
                         position: 'relative'
                     }}>
-                        <b>{new Date(expenseDate).getDate().zeroPad()}</b>
+                        <b>{zeroPad(new Date(expenseDate).getDate())}</b> {/* Use the standalone zeroPad function */}
                     </Typography>
                     <Typography variant="body" sx={{
                         fontSize: 18,
@@ -119,7 +116,6 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
                 >
                     Paid by, <br />{expenseOwner}
                 </Typography>
-
             </Grid>
             <Grid item xs={3}>
                 <Typography
@@ -204,5 +200,5 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
                 </Box>
             </Grid>
         </Grid>
-    )
+    );
 }

@@ -1,4 +1,4 @@
-import { Grid, CardActionArea, CardContent, CardMedia, Typography, Container, Card, Box, Link, alpha, Fab } from "@mui/material";
+import { Grid, Typography, Container, Card, Link, alpha, Fab } from "@mui/material";
 import { useEffect, useState } from "react";
 import { getUserGroupsService } from "../../services/groupServices";
 import Iconify from "../Iconify";
@@ -28,7 +28,7 @@ export default function Group() {
   const checkActive = (split) => {
     for (var key in split) {
       if (split.hasOwnProperty(key)) {
-        if (Math.round(split[key]) != 0)
+        if (Math.round(split[key]) !== 0)
           return true
       }
     }

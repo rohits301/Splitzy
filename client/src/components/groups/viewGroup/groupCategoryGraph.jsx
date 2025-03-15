@@ -71,7 +71,7 @@ const GroupCategoryGraph = (currencyType) => {
         }
         getGroupCategoryExpense()
 
-    }, [])
+    }, [params.groupId])
     return (
         <>
             {loading ? <Loading /> :

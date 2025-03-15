@@ -1,4 +1,3 @@
-import { appendOwnerState } from '@mui/base'
 import * as api from '../api/index'
 
 export const getUserGroupsService = async (data) =>{

@@ -1,4 +1,4 @@
-import { Box, Container, FormControlLabel, FormGroup, Switch, Typography } from '@mui/material';
+import { Box, FormControlLabel, FormGroup, Switch, Typography } from '@mui/material';
 import React, { useEffect } from 'react'
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -77,7 +77,7 @@ const GroupMonthlyGraph = () => {
         }
         getGroupMonthlyExpense()
 
-    }, [])
+    }, [params.groupId])
     return (
         <>
             {loading ? <Loading /> :

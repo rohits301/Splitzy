@@ -1,6 +1,5 @@
-import { Avatar, Button, Grid, Modal, Stack, Typography } from "@mui/material"
+import { Avatar, Button, Modal, Stack, Typography } from "@mui/material"
 import { Box } from "@mui/system"
-import Iconify from "../../Iconify"
 import useResponsive from '../../../theme/hooks/useResponsive';
 import { convertToCurrency, currencyFind } from '../../../utils/helper';
 import BalanceSettlement from "./balanceSettlement";

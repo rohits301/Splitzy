@@ -8,7 +8,6 @@ import { Card, Link, Container, Typography, Stack, Box } from '@mui/material';
 
 // hooks
 import useResponsive from '../../theme/hooks/useResponsive';
-import Logo from '../Logo';
 
 import RegisterForm from "./RegisterForm"
 import Copyright from '../Copyright';

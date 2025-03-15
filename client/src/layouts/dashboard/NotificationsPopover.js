@@ -8,23 +8,18 @@ import {
   Box,
   List,
   Badge,
-  Button,
   Avatar,
   Tooltip,
-  Divider,
   Typography,
   IconButton,
   ListItemText,
-  ListSubheader,
   ListItemAvatar,
   ListItemButton,
-  ListItem,
 } from '@mui/material';
 // utils
 import { fToNow } from '../../utils/formatTime';
 // components
 import Iconify from '../../components/Iconify';
-import Scrollbar from '../../components/Scrollbar';
 import MenuPopover from '../../components/MenuPopover';
 
 // ----------------------------------------------------------------------

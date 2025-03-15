@@ -1,15 +1,15 @@
-import { Box, Grid } from "@mui/material"
+import { Box } from "@mui/material"
 import { Typography } from '@mui/material';
 import React, { useEffect } from 'react'
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getGroupCategoryExpService, getUserCategoryExpService } from '../../services/expenseServices';
+import { getUserCategoryExpService } from '../../services/expenseServices';
 import AlertBanner from '../AlertBanner';
 import Loading from '../loading';
 import { Doughnut } from "react-chartjs-2";
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import 'chart.js/auto'
-import { convertToCurrency, currencyFind } from '../../utils/helper';
+import { convertToCurrency } from '../../utils/helper';
 export const CategoryExpenseChart = () => {
 
     const params = useParams();
@@ -73,7 +73,7 @@ export const CategoryExpenseChart = () => {
         }
         getGroupCategoryExpense()
 
-    }, [])
+    }, [profile.emailId])
 
     return (
         <>

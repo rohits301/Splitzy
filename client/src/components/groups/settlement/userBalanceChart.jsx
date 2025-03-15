@@ -71,7 +71,7 @@ const UserBalanceChart = () => {
             setLoading(false)
         }
         getGroupDetails()
-    }, [])
+    }, [params.groupId])
 
     return (
         <>

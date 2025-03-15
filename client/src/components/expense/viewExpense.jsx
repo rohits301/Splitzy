@@ -1,4 +1,4 @@
-import { Box, Button, Container, Grid, Paper, styled, Typography } from '@mui/material'
+import { Box, Button, Container, Grid, styled, Typography } from '@mui/material'
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getExpDetailsService } from "../../services/expenseServices";
@@ -42,7 +42,7 @@ export const ViewExpense = () => {
         }
 
         getExpenseDetails()
-    }, [])
+    }, [expenseId])
 
     return (
         <>

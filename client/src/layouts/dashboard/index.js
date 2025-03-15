@@ -34,15 +34,15 @@ const MainStyle = styled('div')(({ theme }) => ({
 
 export default function DashboardLayout() {
   const [open, setOpen] = useState(false);
-  const user = JSON.parse(localStorage.getItem('profile'))
+  const user = JSON.parse(localStorage.getItem('profile'));
 
- useEffect(() => {
-   //If user logged in the page is auto directed to dashboard
-  if(user==null){
-    window.location.href="/"
-  } 
- }, [])
- 
+  useEffect(() => {
+    // If user is not logged in, redirect to home page
+    if (user == null) {
+      window.location.href = "/";
+    }
+  }, [user]); // Include 'user' in the dependency array
+
   return (
     <RootStyle>
       <DashboardNavbar onOpenSidebar={() => setOpen(true)} />

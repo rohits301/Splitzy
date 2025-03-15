@@ -80,7 +80,7 @@ export default function ViewGroup() {
             setLoading(false)
         }
         getGroupDetails()
-    }, []);
+    }, [params.groupId]);
 
     const CategoryStyle = styled('span')(({ theme }) => ({
         top: 22,
@@ -357,7 +357,7 @@ export default function ViewGroup() {
                                 ...(mdUp && { px: 6 })
                             }}
                         >
-                            {viewSettlement == 2 && 
+                            {viewSettlement === 2 && 
                             <Typography>
                                 My Balance - Under development 
                             </Typography>

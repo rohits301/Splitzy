@@ -28,7 +28,7 @@ export const RecentTransactions = () => {
         getRecentExp()
 
 
-    }, [])
+    }, [profile.emailId])
 
     return (
         <>

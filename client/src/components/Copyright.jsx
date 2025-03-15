@@ -1,4 +1,4 @@
-import { Link, styled, Typography } from "@mui/material";
+import { Link, Typography } from "@mui/material";
 import FavoriteIcon from '@mui/icons-material/Favorite';
 
 

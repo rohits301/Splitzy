@@ -1,6 +1,6 @@
-import { Box, Grid, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { useEffect, useState } from "react"
-import { Bar, Pie } from "react-chartjs-2"
+import { Pie } from "react-chartjs-2"
 import { getUserGroupsService } from "../../services/groupServices"
 import AlertBanner from "../AlertBanner"
 import Loading from "../loading"
@@ -70,7 +70,7 @@ export const GroupExpenseChart = () => {
         }
         getGroupExpense()
 
-    }, [])
+    }, [profile])
 
     return (
         <>{loading? <Loading/> : 

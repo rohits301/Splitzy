@@ -49,7 +49,7 @@ export default function Logo({ disabledLink = false, sx }) {
           />
         </g>
       </svg> */}
-      <img src = "/static/expense-split1-nobg.png"/>
+      <img src = "/static/expense-split1-nobg.png" alt="Logo"/>
     </Box>
   );
 

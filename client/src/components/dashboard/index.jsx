@@ -12,8 +12,7 @@ import { RecentTransactions } from "./RecentTransactions"
 import { SummaryCards } from "./summaryCards"
 import { WelcomeMessage } from "./welcomeMessage"
 import { Link as RouterLink } from 'react-router-dom';
-import configData from '../../config.json'
-import AlertBanner from "../AlertBanner"
+import configData from '../../config.json';
 
 
 export default function Dashboard() {
@@ -33,7 +32,7 @@ export default function Dashboard() {
             const response_expense = await getUserExpenseService(userIdJson, setAlert, setAlertMessage)
             setUserExp(response_expense.data);
             const response_group = await getUserGroupsService(profile)
-            if (response_group.data.groups.length == 0)
+            if (response_group.data.groups.length === 0)
                 setNewUser(true)
             setLoading(false)
 
