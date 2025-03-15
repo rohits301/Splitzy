@@ -127,7 +127,7 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
                     sx={{
                         fontSize: 13
                     }}>
-                    Per preson
+                    Per person
                 </Typography>
                 <Typography
                     color={(theme) => theme.palette['error'].dark}

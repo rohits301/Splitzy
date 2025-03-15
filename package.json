@@ -1,5 +1,5 @@
 {
-  "name": "splitapp",
+  "name": "splitzy",
   "version": "1.0.0",
   "description": "This is a group money spliting app made with MERN stack ",
   "main": "app.js",
@@ -12,7 +12,7 @@
   "keywords": [
     "SplitWise"
   ],
-  "author": "Sunny George",
+  "author": "Rohit",
   "license": "ISC",
   "dependencies": {
     "@mui/x-data-grid": "^5.12.3",
@@ -25,6 +25,7 @@
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.5.1",
+    "mongodb": "^6.14.2",
     "mongoose": "^6.3.8",
     "morgan": "~1.9.1",
     "winston": "^3.7.2"
