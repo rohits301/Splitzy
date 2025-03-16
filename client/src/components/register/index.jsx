@@ -78,7 +78,7 @@ export default function Login() {
             <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
             Manage the expense more effectively with Splitzy !
             </Typography>
-            <img src="/static/illustrations/illustration_register.png" alt="login" />
+            <img src="/static/illustrations/registration.jpg" alt="login" />
           </SectionStyle>
         )}
          <Container maxWidth="sm">

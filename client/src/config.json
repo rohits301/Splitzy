@@ -20,5 +20,5 @@
     "USER_DELETED_URL" : "/userProfile/confirmDelete",
     "USER_PASS_UPDATE_URL" : "/dashboard/userProfile/updatePassword",
 
-    "USER_DEFAULT_LOGO_URL" : "https://res.cloudinary.com/tuzup/image/upload/v1658929366/Splitzy/user_l7xmft.png"
+    "USER_DEFAULT_LOGO_URL" : "/static/illustrations/user.png"
   }

@@ -14,7 +14,7 @@ export const EndMessage = () => {
                 alignItems={'center'}
             >
                 <Grid item xs={11}>
-                    <img src="/static/illustrations/dashboard-card.png" alt="dashboard" />
+                    <img src="/static/illustrations/dashboard.png" alt="dashboard" />
                 </Grid>
                 <Grid item xs={12}>
                     <Typography variant="body" pb={2} >
