@@ -1,46 +1,42 @@
-import {  Container, Grid, Typography } from "@mui/material"
-import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
-import { getUserExpenseService} from "../../services/expenseServices"
-import { getUserGroupsService } from "../../services/groupServices"
-import Loading from "../loading"
-import { CalenderExpenseGraph } from "./CalenderExpenseGraph"
-import { CategoryExpenseChart } from "./CategoryExpenseGraph"
-import { EndMessage } from "./endMessage"
-import { GroupExpenseChart } from "./GroupExpenseChart"
-import { RecentTransactions } from "./RecentTransactions"
-import { SummaryCards } from "./summaryCards"
-import { WelcomeMessage } from "./welcomeMessage"
+import { Container, Grid, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { getUserExpenseService } from "../../services/expenseServices";
+import { getUserGroupsService } from "../../services/groupServices";
+import Loading from "../loading";
+import { CalenderExpenseGraph } from "./CalenderExpenseGraph";
+import { CategoryExpenseChart } from "./CategoryExpenseGraph";
+import { EndMessage } from "./endMessage";
+import { GroupExpenseChart } from "./GroupExpenseChart";
+import { RecentTransactions } from "./RecentTransactions";
+import { SummaryCards } from "./summaryCards";
+import { WelcomeMessage } from "./welcomeMessage";
 import { Link as RouterLink } from 'react-router-dom';
 import configData from '../../config.json';
 
-
 export default function Dashboard() {
-    const [loading, setLoading] = useState(true)
-    const profile = JSON.parse(localStorage.getItem("profile"))
+    const [loading, setLoading] = useState(true);
+    const profile = JSON.parse(localStorage.getItem("profile"));
     const [alert, setAlert] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
-    const [userExp, setUserExp] = useState()
-    const [newUser, setNewUser] = useState(false)
+    const [userExp, setUserExp] = useState();
+    const [newUser, setNewUser] = useState(false);
 
     useEffect(() => {
         const getUserDetails = async () => {
             setLoading(true);
             const userIdJson = {
                 user: profile.emailId
-            }
-            const response_expense = await getUserExpenseService(userIdJson, setAlert, setAlertMessage)
+            };
+            const response_expense = await getUserExpenseService(userIdJson, setAlert, setAlertMessage);
             setUserExp(response_expense.data);
-            const response_group = await getUserGroupsService(profile)
+            const response_group = await getUserGroupsService(profile);
             if (response_group.data.groups.length === 0)
-                setNewUser(true)
-            setLoading(false)
-
-        }
+                setNewUser(true);
+            setLoading(false);
+        };
         getUserDetails();
-
-
-    }, [])
+    }, [profile.emailId]);
 
     return (
         <Container maxWidth={'xl'}>
@@ -49,7 +45,7 @@ export default function Dashboard() {
                     <Grid item xs={12} md={8}>
                         <Grid container spacing={5}>
                             <Grid item xs={12}>
-                                <WelcomeMessage />
+                                <WelcomeMessage userName={profile.firstName} />
                             </Grid>
 
                             {newUser ?
@@ -63,7 +59,6 @@ export default function Dashboard() {
                                             textAlign: 'center',
                                             minHeight: 'calc(50vh - 200px )',
                                         }}
-
                                     >
                                         <Typography variant="body2" fontSize={18} textAlign={'center'}>
                                             Seems to be new here! Create your first group and add expenses <br />
@@ -74,7 +69,6 @@ export default function Dashboard() {
                                         </Typography>
                                     </Grid>
                                 </Grid>
-
                                 :
                                 <>
                                     <Grid item xs={12}>
@@ -86,13 +80,9 @@ export default function Dashboard() {
                                     <Grid item xs={12} md={12}>
                                         <GroupExpenseChart />
                                     </Grid>
-                                    {/* <Grid item xs={12} md={6}>
-                                <CategoryExpenseChart />
-                            </Grid> */}
                                 </>
                             }
                         </Grid>
-
                     </Grid>
                     {!newUser &&
                         <Grid item xs={12} md={4}>
@@ -109,10 +99,8 @@ export default function Dashboard() {
                             </Grid>
                         </Grid>
                     }
-
                 </Grid>
-
-            }</Container>
-
-    )
+            }
+        </Container>
+    );
 }

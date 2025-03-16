@@ -45,7 +45,7 @@ const SettlementCard = ({ mySettle, currencyType }) => {
                 boxShadow: 4,
             }}
         >
-            <Avatar src={gravatarUrl(mySettle[0], { size: 200, default: configData.USER_DEFAULT_LOGO_URL })} alt="photoURL" sx={{ width: 56, height: 56 }}/>
+            <Avatar src={gravatarUrl(mySettle[0], { size: 200, default: configData.USER_DEFAULT_LOGO_URL })} sx={{ width: 56, height: 56 }}/>
             <Stack spacing={0}>
                 <Typography variant='body' noWrap sx={{fontWeight: 600, ...(!xsUp && {fontSize: 12})}}>
                     {mySettle[0].split('@')[0]}

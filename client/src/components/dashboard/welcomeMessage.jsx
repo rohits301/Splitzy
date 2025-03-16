@@ -1,8 +1,9 @@
-import { Box, Button, Grid, Typography } from "@mui/material"
+import { Box, Button, Grid, Typography } from "@mui/material";
 import { Link as RouterLink } from 'react-router-dom';
-import configData from '../../config.json'
+import PropTypes from 'prop-types';
+import configData from '../../config.json';
 
-export const WelcomeMessage = () => {
+export const WelcomeMessage = ({ userName }) => {
     return (
         <Box sx={{
             boxShadow: 5,
@@ -14,14 +15,12 @@ export const WelcomeMessage = () => {
             <Grid container spacing={2} justifyContent={'center'}
                 alignItems={'center'}
             >
-
                 <Grid container>
                     <Grid item lg={6} md={6} xs={12}>
-
                         <Typography variant="h5" pb={2}>
-                            Hello there, Welcome back!
+                            Hello {userName}, Welcome back!
                         </Typography>
-                        <Typography variant="body2" pb={2} >
+                        <Typography variant="body2" pb={2}>
                             Keep track of shared expenses and settle your corresponding balances in a convenient and personalized way.
                         </Typography>
                         <Button variant="contained"
@@ -35,8 +34,11 @@ export const WelcomeMessage = () => {
                         <img src="/static/illustrations/dashboard.png" alt="dashboard" />
                     </Grid>
                 </Grid>
-
             </Grid>
         </Box>
-    )
-}
+    );
+};
+
+WelcomeMessage.propTypes = {
+    userName: PropTypes.string.isRequired,
+};

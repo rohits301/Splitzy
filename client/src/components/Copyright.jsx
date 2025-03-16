@@ -1,16 +1,18 @@
-import { Link, Typography } from "@mui/material";
+import { Link, Typography, Box } from "@mui/material";
 import FavoriteIcon from '@mui/icons-material/Favorite';
-
 
 export default function Copyright() {
   const currentYear = new Date().getFullYear();
+
   return (
-    <Typography mt="-2" variant="body2" align="center" sx={{ color: 'text.secondary'}}>
-            &copy; {currentYear} rohits301 &nbsp; 
-            <FavoriteIcon  color="error"  sx={{ fontSize: 18 ,mb:'-2px', ml:'-5px' }}/><br/>
-            <Link variant="subtitle3" component={'a'} href="https://github.com/rohits301/Splitzy/" target="_blank">
-            [GitHub]
-            </Link>
-          </Typography>
-  )
+    <Box textAlign="center" mt={2} sx={{ color: 'text.secondary' }}>
+      <Typography variant="body2">
+        &copy; {currentYear} rohits301
+        <FavoriteIcon color="error" sx={{ fontSize: 18, verticalAlign: 'middle', ml: 0.5 }} />
+      </Typography>
+      <Link variant="subtitle2" component="a" href="https://github.com/rohits301/Splitzy/" target="_blank">
+        [GitHub]
+      </Link>
+    </Box>
+  );
 }

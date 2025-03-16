@@ -40,7 +40,7 @@ export const RecentTransactions = () => {
         }}>
             <AlertBanner showAlert={alert} alertMessage={alertMessage} severity='error' />
             <Typography variant="h6" p={2} >
-                Your Recent transactions
+                Your Recent Transactions
             </Typography>
             {recentExp?.map(myExpense => (
 

@@ -9,8 +9,8 @@ import dataConfig from '../../config.json';
 import { deleteExpenseService } from '../../services/expenseServices';
 
 const DateBoxStyle = styled('div')(({ theme }) => ({
-    width: 85,
-    height: 85,
+    width: 75,
+    height: 75,
     borderRadius: 50,
     padding: 5,
     background: theme.palette['warning'].lighter,
@@ -75,27 +75,28 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
                 py: 1
             }}
         >
+           
             <Grid item xs={2}>
                 <DateBoxStyle>
                     <Typography variant="body2" sx={{
-                        fontSize: 28,
-                        top: 7,
-                        left: 20,
+                        fontSize: 24,
+                        top: 5,
+                        left: 18,
                         position: 'relative'
                     }}>
-                        <b>{zeroPad(new Date(expenseDate).getDate())}</b> {/* Use the standalone zeroPad function */}
+                        <b>{zeroPad(new Date(expenseDate).getDate())}</b> 
                     </Typography>
                     <Typography variant="body" sx={{
-                        fontSize: 18,
-                        left: 20,
-                        bottom: 8,
+                        fontSize: 16,
+                        left: 15,
+                        bottom: 5,
                         position: 'relative'
                     }}>
                         {getMonthMMM(expenseDate)}
                     </Typography>
                 </DateBoxStyle>
             </Grid>
-            <Grid item xs={5} ml={1}>
+            <Grid item xs={5} ml={4}>
                 <Typography noWrap variant='h6'
                     color={(theme) => theme.palette['primary'].dark}
                 >
@@ -104,39 +105,49 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
                 <Typography variant='body2'
                     color={(theme) => theme.palette['primary'].dark}
                     sx={{
-                        fontSize: 12
+                        fontSize: 10,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
                     }}
                 >
-                    Total : {currencyFind(currencyType)} {convertToCurrency(expenseAmount)}
+                    Total: {currencyFind(currencyType)} {convertToCurrency(expenseAmount)}
                 </Typography>
                 <Typography noWrap variant='body2'
                     sx={{
-                        fontSize: 9
+                        fontSize: 8,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
                     }}
                 >
-                    Paid by, <br />{expenseOwner}
+                    Paid by: <br />{expenseOwner}
                 </Typography>
             </Grid>
             <Grid item xs={3}>
+
                 <Typography
                     color={(theme) => theme.palette['error'].dark}
                     sx={{
-                        fontSize: 13
-                    }}>
-                    Per person
-                </Typography>
-                <Typography
-                    color={(theme) => theme.palette['error'].dark}
+                        mt: 4
+                    }}
                 >
                     <b>{currencyFind(currencyType)} {convertToCurrency(expensePerMember)}</b>
                 </Typography>
+                <Typography
+                    color={(theme) => theme.palette['error'].dark}
+                    sx={{
+                        mt:-1,
+                        fontSize: 12
+                    }}>
+                    Per person
+                </Typography>
             </Grid>
+             
             <Grid item xs={1}>
                 <Box sx={{
                     p: 0,
-                    mt: -5
+                    // mt: -5
                 }}>
-                    <Iconify aria-describedby={id} icon="charm:menu-meatball" onClick={handleClick} />
+                    <Iconify aria-describedby={id} icon="charm:menu-meatball" onClick={handleClick} sx={{ cursor: 'pointer', ml: 30 }} />
                     <Popover
                         id={id}
                         open={open}
@@ -146,6 +157,12 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
                             vertical: 'bottom',
                             horizontal: 'left',
                         }}
+                        sx={{ cursor: 'pointer' }}
+                        // transformOrigin={{
+                        //     vertical: 'top',
+                        //     horizontal: 'left',
+                        // }}
+                        
                     >
                         <MenuList>
                             <MenuItem component={RouterLink}
@@ -199,6 +216,7 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
                     </Modal>
                 </Box>
             </Grid>
+
         </Grid>
     );
 }
