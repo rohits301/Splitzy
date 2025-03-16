@@ -20,5 +20,5 @@
     "USER_DELETED_URL" : "/userProfile/confirmDelete",
     "USER_PASS_UPDATE_URL" : "/dashboard/userProfile/updatePassword",
 
-    "USER_DEFAULT_LOGO_URL" : "https://github.com/rohits301/Splitzy/blob/main/client/public/static/illustrations/user.png?raw=true"
+    "USER_DEFAULT_LOGO_URL" : "static/illustrations/user.png"
   }

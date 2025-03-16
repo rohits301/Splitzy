@@ -1,0 +1,4 @@
+/* 
+  Referrer-Policy Header to Allow Analytics
+*/
+Referrer-Policy: no-referrer-when-downgrade
