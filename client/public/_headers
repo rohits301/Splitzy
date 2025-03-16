@@ -1,4 +1,12 @@
-/* 
-  Referrer-Policy Header to Allow Analytics
+/*
+  Security Headers
 */
-Referrer-Policy: no-referrer-when-downgrade
+
+/* Allow scripts from Vercel Analytics */
+Content-Security-Policy: script-src 'self' https://*.vercel-insights.com 'unsafe-inline' 'unsafe-eval';
+
+/* Allow analytics to work properly */
+Referrer-Policy: no-referrer-when-downgrade;
+
+/* Allow cross-origin requests (optional, only if needed) */
+Access-Control-Allow-Origin: *;
