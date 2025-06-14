@@ -1,32 +1,13 @@
 
 
-<div align="center">
+# Splitzy
 
-  <h2 align="center">Splitzy</h2>
+<p>A Full-Stack Group Expense Splitting Application</p> 
 
-  <p align="center">
-    Build with the MERN stack (MongoDB, Express, React and NodeJS).
-    <br />
-    <a href="https://github.com/rohits301/Splitzy/"><strong>Explore the docs »</strong></a>
-    <br />
-  </p>
-</div>
+### Introduction
+A full-stack expense spliting application, inspired by Splitwise. Built using JavaScript, PostgreSQL, Express, React & Nodejs. It is specially designed to split group expense between friends. You can add your expense details and get the expense analytics - Group Balance, Monthly amount spend, Catagory wise expense spending charts etc. <br />  
 
-## MERN Stack Group Expense Splitting Application
-
-  * [Introduction](#introduction)
-  * [Key Features](#key-features)
-  * [Technologies used](#technologies-used)
-      - [Frontend](#frontend)
-      - [Backend](#backend)
-      - [Database](#database)
-  * [Configuration and Setup](#configuration-and-setup)
-
-
-## Introduction
-A full stack expense spliting app - splitwise clone made using the MERN stack (MongoDB, Express, React & Nodejs), specially designed to split group expense between friends. With this application, you can add your expense details and get an whole expense analytics feature - Group Balance, Monthly amount spend, Catagory wise expense spending graph etc. <br />  
-
-## Key Features
+### Key Features
 - Create user groups and track group expense 
 - Keep track of shared expenses and settle your corresponding balances in a convenient and personalized way. 
 - Get Analytical graphs to understand your expenditure trend 
@@ -34,7 +15,7 @@ A full stack expense spliting app - splitwise clone made using the MERN stack (M
 - Authentication using JSON web token (JWT) 
 
 
-## Technologies used
+### Technologies used
 This project was created using the following technologies.
 
 #### Frontend
@@ -45,17 +26,16 @@ This project was created using the following technologies.
 - Material UI (for User Interface)
 - Chart.js (To display various analytics graphs)
 - React-chartjs-2  
-- Gravitar (for user profile picture)
 
 #### Backend
 
 - Express
-- Mongoose
+- PostgreSQL
 - JWT (For authentication)
 - bcryptjs (for data encryption)
 
 #### Database
-MongoDB (MongoDB Atlas)
+PostgreSQL
 
 ## Configuration and Setup
 In order to run this project locally, simply fork and clone the repository or download as zip and unzip on your machine. 
@@ -67,8 +47,8 @@ In the first terminal - Setup Clinet
 
 ```
 $ cd client
-$ npm install (to install client-side dependencies)
-$ npm start (to start the client)
+$ pnpm install #(to install client-side dependencies)
+$ pnpm start #(to start the client)
 ```
 
 For setting up backend (root directory) 
@@ -77,13 +57,12 @@ For setting up backend (root directory)
 
 ```
 PORT=3001
-MONGODB_URI=
+PostgreSQL_URI=
 ACCESS_TOKEN_SECRET=
 
 ```
 
-Please follow [This tutorial](https://dev.to/dalalrohit/how-to-connect-to-mongodb-atlas-using-node-js-k9i) to create your mongoDB connection url, which you'll use as your MONGODB_URI
-
+Follow this tutorial to set PostgreSQL URI
 Provide some random key in ACCESS_TOKEN_SECRET or you could generate one using node enter the below command in the terminal to genrate a random secret key 
 
 ```
@@ -93,6 +72,6 @@ node -e "console.log(require('crypto').randomBytes(256).toString('base64'));"
 In the second terminal (*in the project root directory (back-end))
 
 ```
-$ npm install (to install server-side dependencies)
-& npm start (to start the server)
+$ pnpm install (to install server-side dependencies)
+& pnpm start (to start the server)
 ```
