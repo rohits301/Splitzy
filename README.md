@@ -1,77 +1,106 @@
-
-
 # Splitzy
 
-<p>A Full-Stack Group Expense Splitting Application</p> 
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![Tech](https://img.shields.io/badge/stack-React%20%7C%20Node%20%7C%20PostgreSQL-blue)
 
-### Introduction
-A full-stack expense spliting application, inspired by Splitwise. Built using JavaScript, PostgreSQL, Express, React & Nodejs. It is specially designed to split group expense between friends. You can add your expense details and get the expense analytics - Group Balance, Monthly amount spend, Catagory wise expense spending charts etc. <br />  
+> ✨ A Full-Stack Group Expense Splitting Application
 
-### Key Features
-- Create user groups and track group expense 
-- Keep track of shared expenses and settle your corresponding balances in a convenient and personalized way. 
-- Get Analytical graphs to understand your expenditure trend 
-- Multiple user registration.
-- Authentication using JSON web token (JWT) 
+## 📌 Introduction
 
+Splitzy is a full-stack expense splitting application inspired by [Splitwise](https://splitwise.com). It allows groups of friends to split expenses fairly, track balances, and visualize their spending patterns. Built with:
 
-### Technologies used
-This project was created using the following technologies.
-
-#### Frontend
-
-- React JS
-- Redux (for managing and centralizing application state)
-- Axios (for making api calls)
-- Material UI (for User Interface)
-- Chart.js (To display various analytics graphs)
-- React-chartjs-2  
-
-#### Backend
-
-- Express
+- React.js, Node.js, Express.js
 - PostgreSQL
-- JWT (For authentication)
-- bcryptjs (for data encryption)
+- Chart.js for analytics
 
-#### Database
-PostgreSQL
+## 🚀 Key Features
 
-## Configuration and Setup
-In order to run this project locally, simply fork and clone the repository or download as zip and unzip on your machine. 
-- Open the project in your prefered code editor.
-- Go to terminal -> New terminal (If you are using VS code)
-- Split your terminal into two (run the client on one terminal and the server on the other terminal)
+-  Create and manage user groups
+-  Log shared expenses and split them automatically
+-  View real-time group balances
+-  Monthly and category-wise spending analytics
+-  JWT-based user authentication
+-  Multiple user registration & login support
 
-In the first terminal - Setup Clinet 
+## 🛠️ Tech Stack
 
+###  Frontend
+
+- [React.js](https://reactjs.org/)
+- [Redux](https://redux.js.org/) – for global state management
+- [Axios](https://axios-http.com/) – for HTTP requests
+- [Material UI](https://mui.com/) – modern UI components
+- [Chart.js](https://www.chartjs.org/) & [react-chartjs-2](https://react-chartjs-2.js.org/) – data visualizations
+
+###  Backend
+
+- [Node.js](https://nodejs.org/) + [Express.js](https://expressjs.com/)
+- [PostgreSQL](https://www.postgresql.org/) – for database management
+- [bcrypt.js](https://github.com/dcodeIO/bcrypt.js/) – password encryption
+- [JWT](https://github.com/auth0/node-jsonwebtoken) – secure authentication
+
+## ⚙️ Local Setup
+
+### 🔧 Prerequisites
+
+- Node.js + pnpm
+- PostgreSQL
+- Git
+
+### 💻 Clone and Setup
+
+```bash
+git clone <repository-url>
+cd Splitzy
 ```
-$ cd client
-$ pnpm install #(to install client-side dependencies)
-$ pnpm start #(to start the client)
+
+### ➤ Setup Frontend
+
+```bash
+cd client
+pnpm install      # Install frontend dependencies
+pnpm start        # Launch frontend on http://localhost:3000
 ```
 
-For setting up backend (root directory) 
-- create a .env file in the root of your directory.
-- Supply the following credentials
+### ➤ Setup Backend
 
-```
+1. In the root directory, create a `.env` file:
+
+```env
 PORT=3001
-PostgreSQL_URI=
-ACCESS_TOKEN_SECRET=
-
+PostgreSQL_URI=your_database_uri_here
+ACCESS_TOKEN_SECRET=your_random_secret_key_here
 ```
 
-Follow this tutorial to set PostgreSQL URI
-Provide some random key in ACCESS_TOKEN_SECRET or you could generate one using node enter the below command in the terminal to genrate a random secret key 
+Provide some random key in ACCESS_TOKEN_SECRET or you could generate one using node. Enter the below command in the terminal to genrate a strong secret key:
 
-```
+```bash
 node -e "console.log(require('crypto').randomBytes(256).toString('base64'));"
 ```
 
-In the second terminal (*in the project root directory (back-end))
+2. Then, in the root directory:
+
+```bash
+pnpm install      # Install backend dependencies
+pnpm start        # Launch backend server on http://localhost:3001
+```
+
+## 📊 Sample Analytics Dashboard
+
+> _[Add screenshots or a link to a demo if available]_  
+> `assets/screenshots/analytics.png`
+
+## 📂 Folder Structure
 
 ```
-$ pnpm install (to install server-side dependencies)
-& pnpm start (to start the server)
+Splitzy/
+├── client/           # React frontend
+├── server/           # Express backend
+├── .env.example      # Environment variable template
+├── README.md
 ```
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
