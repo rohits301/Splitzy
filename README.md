@@ -4,9 +4,10 @@
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 ![Tech](https://img.shields.io/badge/stack-React%20%7C%20Node%20%7C%20PostgreSQL-blue)
 
-> ✨ A Full-Stack Group Expense Splitting Application
+>  A Full-Stack Group Expense Splitting Application
 
-## 📌 Introduction
+
+##  Introduction
 
 Splitzy is a full-stack expense splitting application inspired by [Splitwise](https://splitwise.com). It allows groups of friends to split expenses fairly, track balances, and visualize their spending patterns. Built with:
 
@@ -14,16 +15,23 @@ Splitzy is a full-stack expense splitting application inspired by [Splitwise](ht
 - PostgreSQL
 - Chart.js for analytics
 
-## 🚀 Key Features
+> Screens
+
+![Dashboard](assets/screenshots/dashboard.png)
+![Analytics](assets/screenshots/analytics.png)
+
+## Key Features
 
 -  Create and manage user groups
 -  Log shared expenses and split them automatically
--  View real-time group balances
+-  View group balances
 -  Monthly and category-wise spending analytics
 -  JWT-based user authentication
 -  Multiple user registration & login support
 
-## 🛠️ Tech Stack
+
+
+## Tech Stack
 
 ###  Frontend
 
@@ -40,22 +48,24 @@ Splitzy is a full-stack expense splitting application inspired by [Splitwise](ht
 - [bcrypt.js](https://github.com/dcodeIO/bcrypt.js/) – password encryption
 - [JWT](https://github.com/auth0/node-jsonwebtoken) – secure authentication
 
-## ⚙️ Local Setup
 
-### 🔧 Prerequisites
+
+## Local Setup
+
+### Prerequisites
 
 - Node.js + pnpm
 - PostgreSQL
 - Git
 
-### 💻 Clone and Setup
+### Clone and Setup
 
 ```bash
 git clone <repository-url>
 cd Splitzy
 ```
 
-### ➤ Setup Frontend
+### Setup Frontend
 
 ```bash
 cd client
@@ -63,7 +73,7 @@ pnpm install      # Install frontend dependencies
 pnpm start        # Launch frontend on http://localhost:3000
 ```
 
-### ➤ Setup Backend
+### Setup Backend
 
 1. In the root directory, create a `.env` file:
 
@@ -86,12 +96,7 @@ pnpm install      # Install backend dependencies
 pnpm start        # Launch backend server on http://localhost:3001
 ```
 
-## 📊 Sample Analytics Dashboard
-
-> _[Add screenshots or a link to a demo if available]_  
-> `assets/screenshots/analytics.png`
-
-## 📂 Folder Structure
+## Folder Structure
 
 ```
 Splitzy/
@@ -101,6 +106,6 @@ Splitzy/
 ├── README.md
 ```
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
