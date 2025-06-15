@@ -15,10 +15,17 @@ Splitzy is a full-stack expense splitting application inspired by [Splitwise](ht
 - PostgreSQL
 - Chart.js for analytics
 
-> Screens
+### Screens
 
-![Dashboard](assets/screenshots/dashboard.png)
-![Analytics](assets/screenshots/analytics.png)
+Login ![Login](screenshots/splitzy-login.png)
+Dashboard ![Dashboard](screenshots/splitzy-dashboard.png)
+Group Management ![Group Management](screenshots/splitzy-group-expenses.png)
+Analytics ![Analytics](screenshots/splitzy-analytics.png)
+
+Use cases:
+- Roommates splitting rent and groceries
+- Friends tracking shared travel expenses
+- Teams organizing event budgets
 
 ## Key Features
 
