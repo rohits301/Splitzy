@@ -296,19 +296,19 @@ exports.recentUserExpenses = async (req, res) => {
         var recentExpense = await model.Expense.find({
             expenseMembers: req.body.user
         }).sort({
-            $natural: -1 //to get the newest first 
-        }).limit(5); //to get the top 5 
+            expenseDate: -1 // Sort by expenseDate in descending order
+        }).limit(5); // Limit to the top 5 expenses
         if (recentExpense.length == 0) {
-            var err = new Error("No expense present for the user")
-            err.status = 400
-            throw err
+            var err = new Error("No expense present for the user");
+            err.status = 400;
+            throw err;
         }
         res.status(200).json({
             status: "Success",
             expense: recentExpense
-        })
+        });
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        logger.error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
         res.status(err.status || 500).json({
             message: err.message
         })

@@ -2,14 +2,13 @@ import { Link as RouterLink } from 'react-router-dom';
 
 // @mui
 import { styled } from '@mui/material/styles';
-import { Card, Link, Container, Typography, Stack, Box } from '@mui/material';
+import { Card, Link, Container, Typography, Box } from '@mui/material';
 
 
 
 // hooks
 import useResponsive from '../../theme/hooks/useResponsive';
 import LoginForm from './LoginForm';
-import Copyright from '../Copyright';
 
 import configData from '../../config.json'
 
@@ -84,7 +83,7 @@ export default function Login() {
         {mdUp && (
           <SectionStyle>
             <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-              Hi, Welcome Back
+              Hi there! Welcome to Splitzy
             </Typography>
             <img src="/static/illustrations/login.JPG" alt="login" />
           </SectionStyle>
@@ -109,9 +108,7 @@ export default function Login() {
                 </Link>
               </Typography>
             )}
-             <Stack spacing={3} sx={{mt: 5}}>
-            <Copyright/>
-            </Stack> 
+              
           </ContentStyle>
         </Container>
         </RootStyle>

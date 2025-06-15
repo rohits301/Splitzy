@@ -2,15 +2,14 @@ import { Link as RouterLink } from 'react-router-dom';
 
 // @mui
 import { styled } from '@mui/material/styles';
-import { Card, Link, Container, Typography, Stack, Box } from '@mui/material';
+import { Card, Link, Container, Typography, Box } from '@mui/material';
 
 
 
 // hooks
 import useResponsive from '../../theme/hooks/useResponsive';
 
-import RegisterForm from "./RegisterForm"
-import Copyright from '../Copyright';
+import RegisterForm from "./RegisterForm";
 
 const RootStyle = styled('div')(({
     theme
@@ -101,9 +100,6 @@ export default function Login() {
               </Typography>
             )}
 
-            <Stack spacing={3} sx={{mt: 5}}>
-                <Copyright/>
-            </Stack> 
           </ContentStyle>
         </Container>
         </RootStyle>

@@ -75,7 +75,7 @@ export const updatePassword = async (formData, setShowAlert, setAlertMessage, sh
         //registering user to the DB
         const {data} = await api.updatePassword(formData)
         showHomeAlert(true)
-        homeAlertMessage("Password Updated Sucessfully!")
+        homeAlertMessage("Password Updated Successfully!")
         return true
     }catch(err){
         setShowAlert(true)
@@ -91,7 +91,7 @@ export const editUser = async (formData, setShowAlert, setAlertMessage, showHome
         //registering user to the DB
         const {data} = await api.editUser(formData)
         showHomeAlert(true)
-        homeAlertMessage("User Updated Sucessfully!")
+        homeAlertMessage("User Updated Successfully!")
         return true
     }catch(err){
         setShowAlert(true)
