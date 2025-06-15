@@ -41,7 +41,7 @@ export const CalenderExpenseGraph = () => {
         plugins: {
             title: {
                 display: false,
-                text: montlyView ? "Daily expense graph" : "Monthly expense graph",
+                text: montlyView ? "Daily Expense Graph" : "Monthly Expense Graph",
                 font: { size: 18 },
                 padding: 19,
                 position: 'bottom'

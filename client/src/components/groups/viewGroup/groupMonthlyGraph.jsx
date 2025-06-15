@@ -44,7 +44,7 @@ const GroupMonthlyGraph = () => {
         plugins: {
             title: {
                 display: false,
-                text: "Monthly expense graph",
+                text: "Monthly Expense Graph",
                 font: { size: 18 },
                 padding: 19,
                 position: 'bottom'
@@ -91,7 +91,7 @@ const GroupMonthlyGraph = () => {
                         </FormGroup>
                     </Box>
                     <Typography variant='subtitle'>
-                        <center>{montlyView ? <>Monthly expense graph</> : <>Daily expense graph</>} </center>
+                        <center>{montlyView ? <>Monthly Expense Graph</> : <>Daily Expense Graph</>} </center>
                     </Typography>
                 </>
             }

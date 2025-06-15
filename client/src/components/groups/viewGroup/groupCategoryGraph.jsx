@@ -80,7 +80,7 @@ const GroupCategoryGraph = (currencyType) => {
                     <Doughnut data={data} options={options} plugins={[ChartDataLabels]}/>
                     {/* <Doughnut data={data} options={options} plugins={[ChartDataLabels]}/> */}
                     <Typography variant='subtitle' p={3}>
-                        <center>Category Expense chart</center>
+                        <center>Category Expense Chart</center>
                     </Typography>
                 </>}
         </>

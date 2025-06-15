@@ -359,7 +359,7 @@ export default function ViewGroup() {
                         >
                             {viewSettlement === 2 && 
                             <Typography>
-                                My Balance - Under development 
+                                My Balance - {currencyFind(group?.groupCurrency)} {findUserSplit(group?.split) ? convertToCurrency(findUserSplit(group?.split)) : 0}  
                             </Typography>
                             }
                             {viewSettlement === 1 &&
