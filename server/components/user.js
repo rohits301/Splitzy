@@ -1,4 +1,5 @@
-const model = require('../model/schema')
+// const model = require('../model/schema')
+const { User } = require('../models'); // Sequelize auto-loads from /models/index.js
 const bcrypt = require('bcryptjs')
 const validator = require('../helper/validation')
 const logger = require('../helper/logger')
@@ -15,31 +16,41 @@ API: /users/v1/register
 exports.userReg = async (req, res) => {
     try {
         //Checking email Id exist in DB
-        const user = await model.User.findOne({
-            emailId: req.body.emailId
-        })
+        /** changed */
+        // const user = await model.User.findOne({
+        //     emailId: req.body.emailId
+        // })
+        const user = await User.findOne({
+            where: { 
+                emailId: req.body.emailId
+            }   
+        });
         //If email ID present in database thows error and retuen message
         if (user) {
-            const err = new Error("Email Id already present please login!")
+            const err = new Error("Email Id already present, please login!")
             err.status = 400
             throw err
         } else {
             //Accepts the inputs and create user model form req.body
-            var newUser = new model.User(req.body)
+            /** changed */
+            // var newUser = new model.User(req.body)
+            const newUser = User.build(req.body); // Sequelize way to create a new instance
             //Performing validations
             if (validator.emailValidation(newUser.emailId) &&
                 validator.passwordValidation(newUser.password) &&
                 validator.notNull(newUser.firstName)) {
-                //Bcrypt password encription
+                //Bcrypt password encryption
                 const salt = await bcrypt.genSalt(10);
                 newUser.password = await bcrypt.hash(newUser.password, salt)
 
                 //storing user details in DB
-                var id = await model.User.create(newUser)
+                /** changed */
+                // var id = await model.User.create(newUser)
+                const createdUser = await newUser.save(); // Sequelize way to save the instance
                 res.status(200).json({
                     status: "Success",
                     message: "User Registeration Success",
-                    userId: id.id
+                    userId: createdUser.id
                 })
             }
         }
@@ -59,9 +70,17 @@ Implement Google Sign-in in the future.
 exports.userLogin = async (req, res) => {
     try {
         //Checking email Id exist in DB 
-        const user = await model.User.findOne({
-            emailId: req.body.emailId
-        })
+        /** changed */
+        // const user = await model.User.findOne({
+        //     emailId: req.body.emailId
+        // })
+        const user = await User.findOne({
+            where: {
+                emailId: req.body.emailId
+            },
+            attributes: ['id', 'emailId', 'password', 'firstName', 'lastName'] // Include password in the result
+        });
+        
         if (!user) {
             var err = new Error("Invalid email Id or Password !")
             err.status = 401
@@ -104,11 +123,20 @@ exports.viewUser = async (req, res) => {
     try {
         //check if the login user is same as the requested user 
         apiAuth.validateUser(req.user, req.body.emailId) 
-        const user = await model.User.findOne({
-            emailId: req.body.emailId
-        }, {
-            password: 0
-        })
+        /** changed */
+        // const user = await model.User.findOne({
+        //     emailId: req.body.emailId
+        // }, {
+        //     password: 0
+        // })
+
+        const user = await User.findOne({
+            where: {
+                emailId: req.body.emailId
+            },
+            attributes: { exclude: ['password'] } // Exclude password from the result
+        });
+
         if(!user) {
             var err = new Error("User does not exist!")
             err.status = 400
@@ -136,20 +164,29 @@ Returns: all user Email ID
 exports.emailList = async (req, res) => {
     try {
         //check if the login user is same as the requested user 
-        const userEmails = await model.User.find({
-        }, {
-            emailId: 1,
-            _id: 0
-        })
+        /** changed */
+        // const userEmails = await model.User.find({
+        // }, {
+        //     emailId: 1,
+        //     _id: 0
+        // })
+        const userEmails = await User.findAll({
+            attributes: ['emailId'] // Only select emailId
+        });
+
         if(!userEmails) {
             var err = new Error("User does not exist!")
             err.status = 400
             throw err
         }
-        var emailList = [] 
-        for(var email of userEmails){
-            emailList.push(email.emailId)
-        }
+        /** changed */
+        // var emailList = [] 
+        // for(var email of userEmails){
+        //     emailList.push(email.emailId)
+        // }
+        // simplify by using map
+        const emailList = userEmails.map(user => user.emailId);
+
         res.status(200).json({
             status: "Success",
             user: emailList
@@ -178,13 +215,19 @@ exports.deleteUser = async (req, res) => {
             err.status = 400 
             throw err
         }
-        const delete_response = await model.User.deleteOne({
-            emailId: req.body.emailId
-        })
+        /** changed */
+        // const delete_response = await model.User.deleteOne({
+        //     emailId: req.body.emailId
+        // })
+        const deleteUser = await User.destroy({
+            where: {
+                emailId: req.body.emailId
+            }
+        });
         res.status(200).json({
             status: "Success",
             message: "User Account deleted!",
-            response: delete_response
+            response: deleteUser
         })
     } catch (err) {
         logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
@@ -216,18 +259,28 @@ exports.editUser = async (req, res) => {
         if (validator.notNull(editUser.firstName) &&
             validator.notNull(editUser.lastName)) {
             //storing user details in DB
-            var update_response = await model.User.updateOne({
-                emailId: editUser.emailId
-            }, {
-                $set: {
+            /** changed */
+            // var update_response = await model.User.updateOne({
+            //     emailId: editUser.emailId
+            // }, {
+            //     $set: {
+            //         firstName: editUser.firstName,
+            //         lastName: editUser.lastName,
+            //     }
+            // })
+            const updateUser = await User.update(
+                {
                     firstName: editUser.firstName,
-                    lastName: editUser.lastName,
+                    lastName: editUser.lastName
+                },
+                {
+                    where: { emailId: editUser.emailId }
                 }
-            })
+            );
             res.status(200).json({
                 status: "Success",
                 message: "User update Success",
-                userId: update_response
+                updatedCount: updateUser[0]
             })
         }
     } catch (err) {
@@ -251,9 +304,16 @@ exports.updatePassword = async (req, res) => {
     try {
         //check if the login user is same as the requested user 
         apiAuth.validateUser(req.user, req.body.emailId)
-        const user = await model.User.findOne({
-            emailId: req.body.emailId
-        })
+        /** changed */
+        // const user = await model.User.findOne({
+        //     emailId: req.body.emailId
+        // })
+        const user = await User.findOne({
+            where: {
+                emailId: req.body.emailId
+            },
+            attributes: ['id', 'emailId', 'password'] // Include password in the result
+        });
         if (!user) {
             var err = new Error("User does not exist!")
             err.status = 400
@@ -271,20 +331,28 @@ exports.updatePassword = async (req, res) => {
             err.status = 400
             throw err
         }
-        //Bcrypt password encription
+        //Bcrypt password encryption
         const salt = await bcrypt.genSalt(10);
         var hash_password = await bcrypt.hash(req.body.newPassword, salt)
-        var update_response = await model.User.updateOne({
-            emailId: req.body.emailId
-        }, {
-            $set: {
-                password: hash_password
-            }
-        })
+        /** changed */
+        // var update_response = await model.User.updateOne({
+        //     emailId: req.body.emailId
+        // }, {
+        //     $set: {
+        //         password: hash_password
+        //     }
+        // })
+        // the below method returns an array where the first element is the number of affected rows
+        // so we need to access the first element to get the count of updated rows
+        const updateUser = await User.update(
+            { password: hash_password },
+            { where: { emailId: req.body.emailId } }
+        );
+
         res.status(200).json({
             status: "Success",
             message: "Password update Success",
-            userId: update_response
+            updatedCount: updateUser[0]
         })
     } catch (err) {
         logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message} ${err.stack}`)
