@@ -1,12 +1,11 @@
 {
   "name": "splitzy",
   "version": "1.0.0",
-  "description": "This is a group money spliting app made with MERN stack ",
+  "description": "This is a group money spliting app made with React,Node.js and PostgreSQL tech stack.",
   "main": "app.js",
   "scripts": {
     "test": "npx nodemon app.js",
     "start": "node app.js",
-    "heroku-postbuild": "cd client && npm install && npm run build",
     "dev": "concurrently \"npm test\" \"cd client && npm start\" "
   },
   "keywords": [
@@ -27,10 +26,14 @@
     "mongodb": "^6.14.2",
     "mongoose": "^8.12.1",
     "morgan": "~1.10.0",
+    "pg": "^8.16.2",
+    "pg-hstore": "^2.3.4",
     "pug": "^3.0.3",
+    "sequelize": "^6.37.7",
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "sequelize-cli": "^6.6.3"
   }
 }
