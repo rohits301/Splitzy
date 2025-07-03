@@ -16,18 +16,18 @@ router.post('/v1/register', controller.userReg)
 router.post('/v1/login', controller.userLogin)
 
 //View User router 
-router.post('/v1/view', apiAuth.validateToken,controller.viewUser)
+router.post('/v1/view', apiAuth.validateToken, controller.viewUser)
 
 //Edit User router
 router.post('/v1/edit', apiAuth.validateToken, controller.editUser)
 
 //Delete User router 
-router.delete('/v1/delete', apiAuth.validateToken,controller.deleteUser)
+router.delete('/v1/delete', apiAuth.validateToken, controller.deleteUser)
 
 //Update Password router
-router.post('/v1/updatePassword',apiAuth.validateToken, controller.updatePassword)
+router.post('/v1/updatePassword', apiAuth.validateToken, controller.updatePassword)
 
-//Get all User Emalil Id 
-router.get('/v1/emailList',apiAuth.validateToken, controller.emailList)
+//Get all User Email Id 
+router.get('/v1/emailList', apiAuth.validateToken, controller.emailList)
 
 module.exports = router;

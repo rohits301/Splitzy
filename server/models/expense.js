@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER, 
       allowNull: false, 
       references: { 
-        model: 'Groups', // name of the table in the database
+        model: 'groups', // name of the table in the database
         key: 'id' // primary key in the Groups table 
       } 
     },

@@ -47,6 +47,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Group',
+    tableName: 'groups', // optional: specify the table name if different from model name
+    freezeTableName: true, // optional: prevents Sequelize from pluralizing the table name
     timestamps: true, // ensures createdAt and updatedAt are added
     underscored: true, // optional: creates snake_case columns like created_at
   });

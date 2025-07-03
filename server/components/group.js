@@ -1,7 +1,10 @@
-const model = require('../model/schema')
+// const model = require('../model/schema')
+const { User, Group, Settlement } = require('../models')
 const validator = require('../helper/validation')
 const logger = require('../helper/logger')
 const splitCalculator = require('../helper/split')
+const { Op } = require('sequelize'); // for groupMembers JSONB array operations
+// const { User, Settlement } = require('../model/schema')
 
 /*
 Create Group Function This function basically create new groups
@@ -15,7 +18,9 @@ Validation: Group Name not empty
 */
 exports.createGroup = async (req, res) => {
     try {
-        var newGroup = new model.Group(req.body)
+        /** changed */
+        // var newGroup = new model.Group(req.body)
+        const newGroup = Group.build(req.body);
         //Performing validation on the input
         if (validator.notNull(newGroup.groupName) &&
             validator.currencyValidation(newGroup.groupCurrency)) {
@@ -53,15 +58,17 @@ exports.createGroup = async (req, res) => {
                 throw err
             }
 
-            var id = await model.Group.create(newGroup)
+            const createdGroup = await newGroup.save()
             res.status(200).json({
                 status: "Success",
                 message: "Group Creation Success",
-                Id: id._id
+                id: createdGroup.id
             })
         }
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message} ${err.stack}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message} ${err.stack}`)
+        // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -77,9 +84,13 @@ Returns: Group Info
 */
 exports.viewGroup = async (req, res) => {
     try {
-        const group = await model.Group.findOne({
-            _id: req.body.id
-        })
+        /** changed */
+        // const group = await model.Group.findOne({
+        //     _id: req.body.id
+        // })
+        const group = await Group.findOne({
+            where : { id: req.body.id }
+        });
         if (!group || req.body.id == null) {
             var err = new Error('Invalid Group Id')
             err.status = 400
@@ -90,7 +101,9 @@ exports.viewGroup = async (req, res) => {
             group: group,
         })
     } catch(err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -105,25 +118,40 @@ Validation: email Id present in DB
 */
 exports.findUserGroup = async (req, res) => {
     try {
-        const user = await model.User.findOne({
-            emailId: req.body.emailId
-        })
+        /** changed */
+        // const user = await model.User.findOne({
+        //     emailId: req.body.emailId
+        // })
+        const user = await User.findOne({
+            where: { emailId: req.body.emailId }
+        });
         if (!user) {
             var err = new Error("User Id not found !")
             err.status = 400
             throw err
         }
-        const groups = await model.Group.find({
-            groupMembers: req.body.emailId
-        }).sort({
-            $natural: -1 //to get the newest first 
-        })
+        /** changed */
+        // const groups = await model.Group.find({
+        //     groupMembers: req.body.emailId
+        // }).sort({
+        //     $natural: -1 //to get the newest first 
+        // })
+        const groups = await Group.findAll({
+            where: {
+                groupMembers: {
+                    [Op.contains]: [req.body.emailId] // Assuming groupMembers is an array
+                }
+            },
+            order: [['createdAt', 'DESC']] // to get the newest first
+        });
         res.status(200).json({
             status: "Success",
             groups: groups
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -138,16 +166,22 @@ Accepts: Group Id
 */
 exports.editGroup = async (req, res) => {
     try {
-        var group = await model.Group.findOne({
-            _id: req.body.id
-        })
+        /** changed */
+        // var group = await model.Group.findOne({
+        //     _id: req.body.id
+        // })
+        const group = await Group.findOne({
+            where: { id: req.body.id }
+        });
         if (!group || req.body.id == null) {
             var err = new Error("Invalid Group Id")
             err.status = 400
             throw err
         }
 
-        var editGroup = new model.Group(req.body)
+        /** changed */
+        // var editGroup = new model.Group(req.body)
+        const editGroup = Group.build(req.body);
 
         //Passing the existing split to the edit group 
         editGroup.split = group.split
@@ -164,11 +198,16 @@ exports.editGroup = async (req, res) => {
                     throw err
                 }
 
-                //Check if a new gorup member is added to the gorup and missing in the split 
-                //split[0] is used since json is stored as an array in the DB - ideally there should only be one element in the split array hence we are using the index number 
-                if (!editGroup.split[0].hasOwnProperty(user)) {
-                    //adding the missing members to the split and init with value 0
-                    editGroup.split[0][user] = 0
+                //Check if a new group member is added to the group and missing in the split 
+                //split is used since json is stored as an array in the DB - ideally there should only be one element in the split array hence we are using the index number
+                /** changed */ 
+                // if (!editGroup.split.hasOwnProperty(user)) {
+                //     //adding the missing members to the split and init with value 0
+                //     editGroup.split[user] = 0
+                // }
+                if (!editGroup.split[user]) {
+                    //if the split value is not present then init with 0
+                    editGroup.split[user] = 0
                 }
             }
 
@@ -180,26 +219,40 @@ exports.editGroup = async (req, res) => {
                 throw err
             }
 
-            var update_response = await model.Group.updateOne({
-                _id: req.body.id
+            /** changed */
+            // change the commented code below in postgres compatible way
+            // var update_response = await model.Group.updateOne({
+            //     _id: req.body.id
+            // }, {
+            //     $set: {
+            //         groupName: editGroup.groupName,
+            //         groupDescription: editGroup.groupDescription,
+            //         groupCurrency: editGroup.groupCurrency,
+            //         groupMembers: editGroup.groupMembers,
+            //         groupCategory: editGroup.groupCategory,
+            //         split: editGroup.split
+            //     }
+            // })
+            const updatedGroup = await Group.update({
+                groupName: editGroup.groupName,
+                groupDescription: editGroup.groupDescription,
+                groupCurrency: editGroup.groupCurrency,
+                groupMembers: editGroup.groupMembers,
+                groupCategory: editGroup.groupCategory,
+                split: editGroup.split
             }, {
-                $set: {
-                    groupName: editGroup.groupName,
-                    groupDescription: editGroup.groupDescription,
-                    groupCurrency: editGroup.groupCurrency,
-                    groupMembers: editGroup.groupMembers,
-                    groupCategory: editGroup.groupCategory,
-                    split: editGroup.split
-                }
-            })
+                where: { id: req.body.id }
+            });
             res.status(200).json({
                 status: "Success",
                 message: "Group updated successfully!",
-                response: update_response
+                response: updatedGroup
             })
         }
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -214,24 +267,34 @@ Validation: exisitng group Id
 */
 exports.deleteGroup = async (req, res) => {
     try {
-        const group = await model.Group.findOne({
-            _id: req.body.id
-        })
+        /** changed */
+        // const group = await model.Group.findOne({
+        //     _id: req.body.id
+        // })
+        const group = await Group.findOne({
+            where: { id: req.body.id }
+        });
         if (!group) {
             var err = new Error("Invalid Group Id")
             err.status = 400
             throw err
         }
-        var delete_group = await model.Group.deleteOne({
-            _id: req.body.id
-        })
+        /** changed */
+        // var delete_group = await model.Group.deleteOne({
+        //     _id: req.body.id
+        // })
+        const deleteGroup = await Group.destroy({
+            where: { id: req.body.id }
+        });
         res.status(200).json({
             message: "Group deleted successfully!",
             status: "Success",
-            response: delete_group
+            response: deleteGroup
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -241,41 +304,55 @@ exports.deleteGroup = async (req, res) => {
 
 /*
 Make Settlement Function 
-This function is used to make the settlements in the gorup 
+This function is used to make the settlements in the group 
 
 */
 exports.makeSettlement = async(req, res) =>{
     try{
-        var reqBody = new model.Settlement(req.body)
+        /** changed */
+        // var reqBody = new model.Settlement(req.body)
+        const reqBody = Settlement.build(req.body);
         validator.notNull(reqBody.groupId)
         validator.notNull(reqBody.settleTo)
         validator.notNull(reqBody.settleFrom)
         validator.notNull(reqBody.settleAmount)
         validator.notNull(reqBody.settleDate)
-        const group = await model.Group.findOne({
-            _id: req.body.groupId
-        })
+        /** changed */
+        // const group = await model.Group.findOne({
+        //     _id: req.body.groupId
+        // })
+        const group = await Group.findOne({
+            where: { id: req.body.groupId }
+        });
         if (!group) {
             var err = new Error("Invalid Group Id")
             err.status = 400
             throw err
         }
        
-       group.split[0][req.body.settleFrom] += req.body.settleAmount
-       group.split[0][req.body.settleTo] -= req.body.settleAmount
+       group.split[req.body.settleFrom] += req.body.settleAmount
+       group.split[req.body.settleTo] -= req.body.settleAmount
 
-       var id = await model.Settlement.create(reqBody)
-       var update_response = await model.Group.updateOne({_id: group._id}, {$set:{split: group.split}})
-        
+       /** changed */
+    //    var id = await model.Settlement.create(reqBody)
+       const id = await Settlement.build(reqBody).save();
+    //    var update_response = await Group.updateOne({_id: group._id}, {$set:{split: group.split}})
+        const updatedResponse = await Group.update({
+            split: group.split
+        }, {
+            where: { id: group.id }
+        });
 
        res.status(200).json({
         message: "Settlement successfully!",
         status: "Success",
-        update: update_response,
+        update: updatedResponse,
         response: id
     })
     }catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -287,7 +364,7 @@ exports.makeSettlement = async(req, res) =>{
 Add Split function 
 This function is called when a new expense is added 
 This function updates the member split amount present in the goroup 
-Accepts gorupId
+Accepts groupId
         per person exp
         exp owner 
         exp members 
@@ -295,30 +372,42 @@ it will add split to the owner and deduct from the remaining members
 This function is not a direct API hit - it is called by add expense function 
 */
 exports.addSplit = async (groupId, expenseAmount, expenseOwner, expenseMembers) => {
-    var group = await model.Group.findOne({
-        _id: groupId
-    })
+    /** changed */
+    // var group = await model.Group.findOne({
+    //     _id: groupId
+    // })
+    const group = await Group.findOne({
+        where: { id: groupId }
+    });
+    
     group.groupTotal += expenseAmount
-    group.split[0][expenseOwner] += expenseAmount
+    group.split[expenseOwner] += expenseAmount
     expensePerPerson = expenseAmount / expenseMembers.length
     expensePerPerson = Math.round((expensePerPerson  + Number.EPSILON) * 100) / 100;
     //Updating the split values per user 
     for (var user of expenseMembers) {
-        group.split[0][user] -= expensePerPerson
+        group.split[user] -= expensePerPerson
     }
     
     //Nullifying split - check if the group balance is zero else added the diff to owner 
     let bal=0
-    for(val of Object.entries(group.split[0]))
+    for(val of Object.entries(group.split))
     {
         bal += val[1]
     }
-    group.split[0][expenseOwner] -= bal
-    group.split[0][expenseOwner] = Math.round((group.split[0][expenseOwner]  + Number.EPSILON) * 100) / 100;
-    //Updating back the split values to the gorup 
-    return await model.Group.updateOne({
-        _id: groupId
-    }, group)
+    group.split[expenseOwner] -= bal
+    group.split[expenseOwner] = Math.round((group.split[expenseOwner]  + Number.EPSILON) * 100) / 100;
+    //Updating back the split values to the group 
+    /** changed */
+    // return await model.Group.updateOne({
+    //     _id: groupId
+    // }, group)
+    return await Group.update({
+        split: group.split,
+        groupTotal: group.groupTotal
+    }, {
+        where: { id: groupId }
+    });
 }
 
 /*
@@ -328,30 +417,41 @@ This is used guring edit expense or delete expense operation
 Works in the reverse of addSplit function 
 */
 exports.clearSplit = async (groupId, expenseAmount, expenseOwner, expenseMembers) => {
-    var group = await model.Group.findOne({
-        _id: groupId
-    })
+    /** changed */
+    // var group = await model.Group.findOne({
+    //     _id: groupId
+    // })
+    const group = await Group.findOne({
+        where: { id: groupId }
+    });
     group.groupTotal -= expenseAmount
-    group.split[0][expenseOwner] -= expenseAmount
+    group.split[expenseOwner] -= expenseAmount
     expensePerPerson = expenseAmount / expenseMembers.length
     expensePerPerson = Math.round((expensePerPerson  + Number.EPSILON) * 100) / 100;
     //Updating the split values per user 
     for (var user of expenseMembers) {
-        group.split[0][user] += expensePerPerson
+        group.split[user] += expensePerPerson
     }
 
     //Nullifying split - check if the group balance is zero else added the diff to owner 
     let bal=0
-    for(val of Object.entries(group.split[0]))
+    for(val of Object.entries(group.split))
     {
         bal += val[1]
     }
-    group.split[0][expenseOwner] -= bal
-    group.split[0][expenseOwner] = Math.round((group.split[0][expenseOwner]  + Number.EPSILON) * 100) / 100;
-    //Updating back the split values to the gorup 
-    return await model.Group.updateOne({
-        _id: groupId
-    }, group)
+    group.split[expenseOwner] -= bal
+    group.split[expenseOwner] = Math.round((group.split[expenseOwner]  + Number.EPSILON) * 100) / 100;
+    //Updating back the split values to the group 
+    /** changed */
+    // return await model.Group.updateOne({
+    //     _id: groupId
+    // }, group)
+    return await Group.update({
+        split: group.split,
+        groupTotal: group.groupTotal
+    }, {
+        where: { id: groupId }
+    });
 }
 
 
@@ -363,9 +463,13 @@ return : group settlement detals
 */
 exports.groupBalanceSheet = async(req, res) =>{
     try {
-        const group = await model.Group.findOne({
-            _id: req.body.id
-        })
+        /** changed */
+        // const group = await model.Group.findOne({
+        //     _id: req.body.id
+        // })
+        const group = await Group.findOne({
+            where: { id: req.body.id }
+        });
         if (!group) {
             var err = new Error("Invalid Group Id")
             err.status = 400
@@ -373,10 +477,12 @@ exports.groupBalanceSheet = async(req, res) =>{
         }
         res.status(200).json({
             status: "Success",
-            data: splitCalculator(group.split[0])
+            data: splitCalculator(group.split)
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })

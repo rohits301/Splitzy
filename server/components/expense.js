@@ -1,7 +1,15 @@
-const model = require('../model/schema')
+// const model = require('../model/schema')
+// const { Expense, Group } = require('../models');
 const validator = require('../helper/validation');
 const logger = require('../helper/logger');
-const gorupDAO = require('./group')
+const groupDAO = require('./group');
+// const { where } = require('sequelize');
+const db = require('../models');
+const { Expense, Group } = db;
+const sequelize = db.sequelize;
+const Op = require('sequelize').Op;
+// const { Op } = require('sequelize');
+
 
 /*
 Add Expense function
@@ -17,9 +25,13 @@ Accepts: Group ID not null group ID exist in the DB
 exports.addExpense = async (req, res) => {
     try {
         var expense = req.body;
-        var group = await model.Group.findOne({
-            _id: expense.groupId
-        })
+        /** changed */
+        // var group = await model.Group.findOne({
+        //     _id: expense.groupId
+        // })
+        const group = await Group.findOne({
+            where: { id: expense.groupId }
+        });
         if (!group) {
             var err = new Error("Invalid Group Id")
             err.status = 400
@@ -28,8 +40,34 @@ exports.addExpense = async (req, res) => {
         if (validator.notNull(expense.expenseName) &&
             validator.notNull(expense.expenseAmount) &&
             validator.notNull(expense.expenseOwner) &&
-            validator.notNull(expense.expenseMembers) &&
-            validator.notNull(expense.expenseDate)) {
+            validator.notNull(expense.expenseMembers)) {
+            // After checking notNull for expenseAmount and expenseMembers
+            if (expense.expenseAmount <= 0) {
+                var err = new Error("Expense amount must be greater than zero");
+                err.status = 400;
+                throw err;
+            }
+
+            // Check for duplicate members
+            const uniqueMembers = new Set(expense.expenseMembers);
+            if (uniqueMembers.size !== expense.expenseMembers.length) {
+                var err = new Error("Expense members must not contain duplicates");
+                err.status = 400;
+                throw err;
+            }
+            // Check expense members array
+            // Ensure expenseMembers is an array and not empty
+            if (!Array.isArray(expense.expenseMembers) || expense.expenseMembers.length === 0) {
+                var err = new Error("Expense members must be a non-empty array");
+                err.status = 400;
+                throw err;
+            }
+
+            // Set expenseDate to current date if not provided
+            if (!expense.expenseDate) {
+                expense.expenseDate = new Date();
+            }
+
             var ownerValidation = await validator.groupUserValidation(expense.expenseOwner, expense.groupId)
             if (!ownerValidation) {
                 var err = new Error("Please provide a valid group owner")
@@ -39,28 +77,55 @@ exports.addExpense = async (req, res) => {
             for (var user of expense.expenseMembers) {
                 var memberValidation = await validator.groupUserValidation(user, expense.groupId)
                 if (!memberValidation) {
-                    var err = new Error("Please ensure the members exixt in the group")
+                    var err = new Error("Please ensure the members exist in the group")
                     err.status = 400
                     throw err
                 }
             }
-            expense.expensePerMember = expense.expenseAmount / expense.expenseMembers.length
-            expense.expenseCurrency = group.groupCurrency
-            var newExp = new model.Expense(expense)
-            var newExpense = await model.Expense.create(newExp)
+            // expense.expensePerMember = Math.round((expense.expensePerMember + Number.EPSILON) * 100) / 100;
+            // Calculate expensePerMember if not provided
+            if (!expense.expensePerMember) {
+                expense.expensePerMember = Math.round((expense.expenseAmount / expense.expenseMembers.length + Number.EPSILON) * 100) / 100;
+            }
+            expense.expenseCurrency = group.groupCurrency;
+            if (!expense.expenseType) {
+                expense.expenseType = 'CASH';
+            }
+            if (!expense.expenseCategory) {
+                expense.expenseCategory = 'Others';
+            }
+
+            /** changed */
+            // var newExp = new model.Expense(expense)
+            // var newExpense = await model.Expense.create(newExp)
+            const newExpense = await Expense.create({
+                groupId: expense.groupId,
+                expenseName: expense.expenseName,
+                expenseDescription: expense.expenseDescription,
+                expenseAmount: expense.expenseAmount,
+                expenseOwner: expense.expenseOwner,
+                expenseMembers: expense.expenseMembers,
+                expenseDate: expense.expenseDate,
+                expensePerMember: expense.expensePerMember,
+                expenseCurrency: expense.expenseCurrency,
+                expenseType: expense.expenseType,
+                expenseCategory: expense.expenseCategory
+            });
 
             //New expense is created now we need to update the split values present in the group 
-            var update_response = await gorupDAO.addSplit(expense.groupId, expense.expenseAmount, expense.expenseOwner, expense.expenseMembers)
+            var update_response = await groupDAO.addSplit(expense.groupId, expense.expenseAmount, expense.expenseOwner, expense.expenseMembers)
 
             res.status(200).json({
                 status: "Success",
                 message: "New expenses added",
-                Id: newExpense._id,
+                id: newExpense.id,
                 splitUpdateResponse: update_response
             })
         }
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -80,9 +145,13 @@ Accepts: Group ID not null group ID exist in the DB
 exports.editExpense = async (req, res) => {
     try {
         var expense = req.body
-        var oldExpense = await model.Expense.findOne({
-            _id: expense.id
-        })
+        /** changed */
+        // var oldExpense = await model.Expense.findOne({
+        //     _id: expense.id
+        // })
+        const oldExpense = await Expense.findOne({
+            where: { id: expense.id }
+        });
         if (!oldExpense || expense.id == null ||
             oldExpense.groupId != expense.groupId
         ) {
@@ -94,43 +163,103 @@ exports.editExpense = async (req, res) => {
         if (validator.notNull(expense.expenseName) &&
             validator.notNull(expense.expenseAmount) &&
             validator.notNull(expense.expenseOwner) &&
-            validator.notNull(expense.expenseMembers)&& 
-            validator.notNull(expense.expenseDate)) {
+            validator.notNull(expense.expenseMembers)) {
+            // After checking notNull for expenseAmount and expenseMembers
+            if (expense.expenseAmount <= 0) {
+                var err = new Error("Expense amount must be greater than zero");
+                err.status = 400;
+                throw err;
+            }
+
+            // Check for duplicate members
+            const uniqueMembers = new Set(expense.expenseMembers);
+            if (uniqueMembers.size !== expense.expenseMembers.length) {
+                var err = new Error("Expense members must not contain duplicates");
+                err.status = 400;
+                throw err;
+            }
+            // Set expenseDate to current date if not provided
+            if (!expense.expenseDate) {
+                expense.expenseDate = new Date();
+            }
             var ownerValidation = await validator.groupUserValidation(expense.expenseOwner, expense.groupId)
             if (!ownerValidation) {
                 var err = new Error("Please provide a valid group owner")
                 err.status = 400
                 throw err
             }
+            // Add this check:
+            if (!Array.isArray(expense.expenseMembers) || expense.expenseMembers.length === 0) {
+                var err = new Error("Expense members must be a non-empty array");
+                err.status = 400;
+                throw err;
+            }
             for (var user of expense.expenseMembers) {
                 var memberValidation = await validator.groupUserValidation(user, expense.groupId)
                 if (!memberValidation) {
-                    var err = new Error("Please ensure the members exixt in the group")
+                    var err = new Error("Please ensure the members exist in the group")
                     err.status = 400
                     throw err
                 }
             }
 
-            var expenseUpdate = await model.Expense.updateOne({
-                _id: req.body.id
+            /** changed */
+            // var expenseUpdate = await model.Expense.updateOne({
+            //     _id: req.body.id
 
-            }, {
-                $set: {
+            // }, {
+            //     $set: {
+            //         groupId: expense.groupId,
+            //         expenseName: expense.expenseName,
+            //         expenseDescription: expense.expenseDescription,
+            //         expenseAmount: expense.expenseAmount,
+            //         expenseOwner: expense.expenseOwner,
+            //         expenseMembers: expense.expenseMembers,
+            //         expensePerMember: expense.expenseAmount / expense.expenseMembers.length,
+            //         expenseType: expense.expenseType,
+            //         expenseDate: expense.expenseDate,
+            //     }
+            // })
+
+            // Calculate expensePerMember if not provided
+            if (!expense.expensePerMember) {
+                expense.expensePerMember = Math.round((expense.expenseAmount / expense.expenseMembers.length + Number.EPSILON) * 100) / 100;
+            }
+            if (!expense.expenseType) {
+                expense.expenseType = 'CASH';
+            }
+            if (!expense.expenseCategory) {
+                expense.expenseCategory = 'Others';
+            }
+
+            // Use group currency if available
+            const group = await Group.findOne({ where: { id: expense.groupId } });
+            if (group) {
+                expense.expenseCurrency = group.groupCurrency;
+            }
+
+            const expenseUpdate = await Expense.update(
+                {
                     groupId: expense.groupId,
                     expenseName: expense.expenseName,
                     expenseDescription: expense.expenseDescription,
                     expenseAmount: expense.expenseAmount,
                     expenseOwner: expense.expenseOwner,
                     expenseMembers: expense.expenseMembers,
-                    expensePerMember: expense.expenseAmount / expense.expenseMembers.length,
+                    expensePerMember: expense.expensePerMember,
                     expenseType: expense.expenseType,
                     expenseDate: expense.expenseDate,
+                    expenseCurrency: expense.expenseCurrency,
+                    expenseCategory: expense.expenseCategory
+                },
+                {
+                    where: { id: expense.id }
                 }
-            })
+            );
 
             //Updating the group split values
-            await gorupDAO.clearSplit(oldExpense.groupId, oldExpense.expenseAmount, oldExpense.expenseOwner, oldExpense.expenseMembers)
-            await gorupDAO.addSplit(expense.groupId, expense.expenseAmount, expense.expenseOwner, expense.expenseMembers)
+            await groupDAO.clearSplit(oldExpense.groupId, oldExpense.expenseAmount, oldExpense.expenseOwner, oldExpense.expenseMembers)
+            await groupDAO.addSplit(expense.groupId, expense.expenseAmount, expense.expenseOwner, expense.expenseMembers)
 
             res.status(200).json({
                 status: "Success",
@@ -139,7 +268,9 @@ exports.editExpense = async (req, res) => {
             })
         }
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -154,20 +285,28 @@ Accepts: Group ID not null group ID exist in the DB
 */
 exports.deleteExpense = async (req, res) => {
     try {
-        var expense = await model.Expense.findOne({
-            _id: req.body.id
-        })
+        /** changed */
+        // var expense = await model.Expense.findOne({
+        //     _id: req.body.id
+        // })
+        const expense = await Expense.findOne({
+            where: { id: req.body.id }
+        });
         if (!expense) {
             var err = new Error("Invalid Expense Id")
             err.status = 400
             throw err
         }
-        var deleteExp = await model.Expense.deleteOne({
-            _id: req.body.id
-        })
+        /** changed */
+        // var deleteExp = await model.Expense.deleteOne({
+        //     _id: req.body.id
+        // })
+        const deleteExp = await Expense.destroy({
+            where: { id: req.body.id }
+        });
 
         //Clearing split value for the deleted expense from group table
-        await gorupDAO.clearSplit(expense.groupId, expense.expenseAmount, expense.expenseOwner, expense.expenseMembers)
+        await groupDAO.clearSplit(expense.groupId, expense.expenseAmount, expense.expenseOwner, expense.expenseMembers)
 
         res.status(200).json({
             status: "Success",
@@ -175,7 +314,10 @@ exports.deleteExpense = async (req, res) => {
             response: deleteExp
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
+
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -192,10 +334,14 @@ Returns: Json with the expense details
 
 exports.viewExpense = async (req, res) => {
     try {
-        var expense = await model.Expense.findOne({
-            _id: req.body.id
-        })
-        if (expense.length == 0) {
+        /** changed */
+        // var expense = await model.Expense.findOne({
+        //     _id: req.body.id
+        // })
+        const expense = await Expense.findOne({
+            where: { id: req.body.id }
+        });
+        if (!expense) {
             var err = new Error("No expense present for the Id")
             err.status = 400
             throw err
@@ -205,7 +351,9 @@ exports.viewExpense = async (req, res) => {
             expense: expense
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -220,27 +368,46 @@ Returns: Json with all the expense record and the total expense amount for the g
 */
 exports.viewGroupExpense = async (req, res) => {
     try {
-        var groupExpense = await model.Expense.find({
-            groupId: req.body.id
-        }).sort({
-            expenseDate: -1 //to get the newest first 
-        })
-        if (groupExpense.length == 0) {
-            var err = new Error("No expense present for the group")
-            err.status = 400
-            throw err
+        /** changed */
+        // var groupExpense = await model.Expense.find({
+        //     groupId: req.body.id
+        // }).sort({
+        //     expenseDate: -1 //to get the newest first 
+        // })
+        // Check if group exists
+        const group = await Group.findOne({ where: { id: req.body.id } });
+        if (!group) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid Group Id"
+            });
         }
-        var totalAmount = 0
-        for (var expense of groupExpense) {
-            totalAmount += expense['expenseAmount']
-        }
+        const groupExpense = await Expense.findAll({
+            where: { groupId: req.body.id },
+            order: [['expenseDate', 'DESC']] // Sort by expenseDate in descending order
+        });
+        // below is not an error, let it be empty response
+        // if (groupExpense.length == 0) {
+        //     var err = new Error("No expense present for the group")
+        //     err.status = 400
+        //     throw err
+        // }
+        // var totalAmount = 0
+        // for (var expense of groupExpense) {
+        //     totalAmount += expense['expenseAmount']
+        // }
+        // Using `const` to have ES5 feature of `reduce()`.
+        const totalAmount = groupExpense.reduce((acc, expense) => acc + expense.expenseAmount, 0);
+
         res.status(200).json({
             status: "Success",
             expense: groupExpense,
             total: totalAmount
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -257,16 +424,39 @@ returns: Expenses
 exports.viewUserExpense = async (req, res) => {
     try {
         validator.notNull(req.body.user)
-        var userExpense = await model.Expense.find({
-            expenseMembers: req.body.user
-        }).sort({
-            expenseDate: -1 //to get the newest first 
-        })
-        if (userExpense.length == 0) {
-            var err = new Error("No expense present for the user")
-            err.status = 400
-            throw err
+        if (!req.body.user) {
+            return res.status(400).json({
+                status: "error",
+                message: "User email is required"
+            });
         }
+        /** changed */
+        // var userExpense = await model.Expense.find({
+        //     expenseMembers: req.body.user
+        // }).sort({
+        //     expenseDate: -1 //to get the newest first 
+        // })
+        const user = await db.User.findOne({ where: { emailId: req.body.user } });
+        if (!user) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid User"
+            });
+        }
+        const userExpense = await Expense.findAll({
+            where: {
+                expenseMembers: {
+                    [Op.contains]: [req.body.user]
+                }
+            },
+            order: [['expenseDate', 'DESC']] // Sort by expenseDate in descending order
+        });
+        // handle this at frontend
+        // if (userExpense.length == 0) {
+        //     var err = new Error("No expense present for the user")
+        //     err.status = 400
+        //     throw err
+        // }
         var totalAmount = 0
         for (var expense of userExpense) {
             totalAmount += expense['expensePerMember']
@@ -278,7 +468,9 @@ exports.viewUserExpense = async (req, res) => {
         })
 
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -293,22 +485,51 @@ Returns : top 5 most resent expense user is a expenseMember in all the groups
 */
 exports.recentUserExpenses = async (req, res) => {
     try {
-        var recentExpense = await model.Expense.find({
-            expenseMembers: req.body.user
-        }).sort({
-            expenseDate: -1 // Sort by expenseDate in descending order
-        }).limit(5); // Limit to the top 5 expenses
-        if (recentExpense.length == 0) {
-            var err = new Error("No expense present for the user");
-            err.status = 400;
-            throw err;
+        /** changed */
+        // var recentExpense = await model.Expense.find({
+        //     expenseMembers: req.body.user
+        // }).sort({
+        //     expenseDate: -1 // Sort by expenseDate in descending order
+        // }).limit(5); // Limit to the top 5 expenses
+        if (!req.body.user) {
+            return res.status(400).json({
+                status: "error",
+                message: "User email is required"
+            });
         }
-        res.status(200).json({
+        const user = await db.User.findOne({ where: { emailId: req.body.user } });
+        if (!user) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid User"
+            });
+        }
+        const recentExpense = await Expense.findAll({
+            where: {
+                expenseMembers: {
+                    [Op.contains]: [req.body.user]
+                }
+            },
+            order: [['expenseDate', 'DESC']],
+            limit: 5
+        });
+        if (recentExpense.length == 0) {
+            // Instead of throwing an error, return an empty list
+            return res.status(200).json({
+                status: "Success",
+                expense: [],
+                message: "No expense present for the user"
+            });
+        }
+        return res.status(200).json({
             status: "Success",
-            expense: recentExpense
+            expense: recentExpense,
+            message: recentExpense.length === 0 ? "No expense present for the user" : undefined
         });
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -324,27 +545,57 @@ Returns : Each category total exp (group as whole)
 */
 exports.groupCategoryExpense = async (req, res) => {
     try {
-        var categoryExpense = await model.Expense.aggregate([{
-                $match: {
-                    groupId: req.body.id
-                }
+        /** changed */
+        // var categoryExpense = await model.Expense.aggregate([{
+        //         $match: {
+        //             groupId: req.body.id
+        //         }
+        //     },
+        //     {
+        //         $group: {
+        //             _id: "$expenseCategory",
+        //             amount: {
+        //                 $sum: "$expenseAmount"
+        //             }
+        //         }
+        //     },{ $sort : {"_id" : 1 } }
+        // ])
+        // if group ID is not provided
+        if (!req.body.id) {
+            return res.status(400).json({
+                status: "error",
+                message: "Group ID is required"
+            });
+        }
+        const categoryExpense = await Expense.findAll({
+            // Corresponds to the columns you want to select and create
+            attributes: [
+                // The column you are grouping by
+                'expenseCategory',
+                // The aggregation function: SUM the 'expenseAmount' column
+                // and name the resulting column 'amount'
+                [sequelize.fn('SUM', sequelize.col('expense_amount')), 'amount']
+            ],
+            // The '$match' part of the aggregation, equivalent to a WHERE clause
+            where: {
+                groupId: req.body.id
             },
-            {
-                $group: {
-                    _id: "$expenseCategory",
-                    amount: {
-                        $sum: "$expenseAmount"
-                    }
-                }
-            },{ $sort : {"_id" : 1 } }
-        ])
+            // The '$group' part, specifying the column to group rows by
+            group: ['expenseCategory'],
+            // The '$sort' part, equivalent to an ORDER BY clause
+            order: [['expenseCategory', 'ASC']],
+            // Optional: Returns plain JSON objects, not Sequelize model instances
+            raw: true
+        });
 
         res.status(200).json({
             status: "success",
             data: categoryExpense
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -360,40 +611,74 @@ Returns : Expense per month (current year)
 */
 exports.groupMonthlyExpense = async (req, res) => {
     try {
-        var monthlyExpense = await model.Expense.aggregate([{
-                $match: {
-                    groupId: req.body.id
-                }
+        /** changed */
+        // var monthlyExpense = await model.Expense.aggregate([{
+        //     $match: {
+        //         groupId: req.body.id
+        //     }
+        // },
+        // {
+        //     $group: {
+        //         _id: {
+        //             month: {
+        //                 $month: "$expenseDate"
+        //             },
+        //             year: {
+        //                 $year: "$expenseDate"
+        //             }
+        //         },
+        //         amount: {
+        //             $sum: "$expenseAmount"
+        //         }
+        //     }
+        // },
+        // { $sort: { "_id.month": 1 } }
+        // ])
+        if (!req.body.id) {
+            return res.status(400).json({
+                status: "error",
+                message: "Group ID is required"
+            });
+        }
+        // Check if group exists
+        const group = await Group.findOne({ where: { id: req.body.id } });
+        if (!group) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid Group Id"
+            });
+        }
+        const monthlyExpense = await Expense.findAll({
+            attributes: [
+                [sequelize.literal('EXTRACT(MONTH FROM "expense_date")'), 'month'],
+                [sequelize.literal('EXTRACT(YEAR FROM "expense_date")'), 'year'],
+                [sequelize.fn('SUM', sequelize.col('expense_amount')), 'amount']
+            ],
+            where: {
+                groupId: req.body.id
             },
-            {
-                $group: {
-                    _id: {
-                        month: {
-                            $month: "$expenseDate"
-                        },
-                        year: {
-                            $year: "$expenseDate"
-                        }
-                    },
-                    amount: {
-                        $sum: "$expenseAmount"
-                    }
-                }
-            },
-            { $sort : {"_id.month" : 1 } }
-        ])
+            group: [
+                sequelize.literal('EXTRACT(MONTH FROM "expense_date")'),
+                sequelize.literal('EXTRACT(YEAR FROM "expense_date")')
+            ],
+            order: [['year', 'ASC'], ['month', 'ASC']],
+            raw: true
+        });
         res.status(200).json({
             status: "success",
             data: monthlyExpense
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
     }
 }
 
+// is the below line even required?
 
 new Date(new Date().setMonth(new Date().getMonth() - 5))
 /*
@@ -404,39 +689,86 @@ Returns : Expense per day (current year)
 */
 exports.groupDailyExpense = async (req, res) => {
     try {
-        var dailyExpense = await model.Expense.aggregate([{
-                $match: { groupId: req.body.id,
+        /** changed */
+        // var dailyExpense = await model.Expense.aggregate([{
+        //     $match: {
+        //         groupId: req.body.id,
+        //         expenseDate: {
+        //             $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+        //             $lte: new Date()
+        //         }
+        //     }
+        // },
+        // {
+        //     $group: {
+        //         _id: {
+        //             date: {
+        //                 $dayOfMonth: "$expenseDate"
+        //             },
+        //             month: {
+        //                 $month: "$expenseDate"
+        //             },
+        //             year: {
+        //                 $year: "$expenseDate"
+        //             }
+        //         },
+        //         amount: {
+        //             $sum: "$expenseAmount"
+        //         }
+        //     }
+        // },
+        // { $sort: { "_id.month": 1, "_id.date": 1 } }
+        // ])
+        if (!req.body.id) {
+            return res.status(400).json({
+                status: "error",
+                message: "Group ID is required"
+            });
+        }
+        // Check if group exists        
+        const group = await Group.findOne({
+            where: { id: req.body.id }
+        });
+        if (!group) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid Group Id"
+            });
+        }
+        const dailyExpense = await Expense.findAll({
+            attributes: [
+                [sequelize.literal('EXTRACT(DAY FROM "expense_date")'), 'date'],
+                [sequelize.literal('EXTRACT(MONTH FROM "expense_date")'), 'month'],
+                [sequelize.literal('EXTRACT(YEAR FROM "expense_date")'), 'year'],
+                [sequelize.fn('SUM', sequelize.col('expense_amount')), 'amount']
+            ],
+            where: {
+                groupId: req.body.id,
                 expenseDate: {
-                    $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)), 
-                    $lte: new Date()}             
+                    [Op.gte]: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+                    [Op.lte]: new Date()
                 }
             },
-            {
-                $group: {
-                    _id: {
-                        date: {
-                            $dayOfMonth: "$expenseDate"
-                        },
-                        month: {
-                            $month: "$expenseDate"
-                        },
-                        year: {
-                            $year: "$expenseDate"
-                        }
-                    },
-                    amount: {
-                        $sum: "$expenseAmount"
-                    }
-                }
-            },
-            { $sort : {"_id.month" :1, "_id.date" : 1  } }
-        ])
+            group: [
+                sequelize.literal('EXTRACT(DAY FROM "expense_date")'),
+                sequelize.literal('EXTRACT(MONTH FROM "expense_date")'),
+                sequelize.literal('EXTRACT(YEAR FROM "expense_date")')
+            ],
+            order: [
+                ['year', 'ASC'],
+                ['month', 'ASC'],
+                ['date', 'ASC']
+            ],
+            raw: true
+        });
         res.status(200).json({
             status: "success",
             data: dailyExpense
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -454,27 +786,59 @@ Returns : Each category total exp (individaul Expense)
 */
 exports.userCategoryExpense = async (req, res) => {
     try {
-        var categoryExpense = await model.Expense.aggregate([{
-                $match: {
-                    expenseMembers: req.body.user
+        /** changed */
+        // var categoryExpense = await model.Expense.aggregate([{
+        //     $match: {
+        //         expenseMembers: req.body.user
+        //     }
+        // },
+        // {
+        //     $group: {
+        //         _id: "$expenseCategory",
+        //         amount: {
+        //             $sum: "$expensePerMember"
+        //         }
+        //     }
+        // }, { $sort: { "_id": 1 } }
+        // ])
+        if (!req.body.user) {
+            return res.status(400).json({
+                status: "error",
+                message: "User email is required"
+            });
+        }
+        const user = await db.User.findOne({
+            where: { emailId: req.body.user }
+        });
+        if (!user) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid User"
+            });
+        }
+        const categoryExpense = await Expense.findAll({
+            attributes: [
+                'expenseCategory',
+                [sequelize.fn('SUM', sequelize.col('expense_per_member')), 'amount']
+            ],
+            where: {
+                expenseMembers: {
+                    [Op.contains]: [req.body.user]
                 }
             },
-            {
-                $group: {
-                    _id: "$expenseCategory",
-                    amount: {
-                        $sum: "$expensePerMember"
-                    }
-                }
-            },{ $sort : {"_id" : 1 } }
-        ])
+            group: ['expenseCategory'],
+            order: [['expenseCategory', 'ASC']],
+            raw: true
+        });
 
         res.status(200).json({
             status: "success",
             data: categoryExpense
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -490,34 +854,69 @@ Returns : Expense per month
 */
 exports.userMonthlyExpense = async (req, res) => {
     try {
-        var monthlyExpense = await model.Expense.aggregate([{
-                $match: {
-                    expenseMembers: req.body.user
+        /** changed */
+        // var monthlyExpense = await model.Expense.aggregate([{
+        //     $match: {
+        //         expenseMembers: req.body.user
+        //     }
+        // },
+        // {
+        //     $group: {
+        //         _id: {
+        //             month: {
+        //                 $month: "$expenseDate"
+        //             },
+        //             year: {
+        //                 $year: "$expenseDate"
+        //             }
+        //         },
+        //         amount: {
+        //             $sum: "$expensePerMember"
+        //         }
+        //     }
+        // },
+        // { $sort: { "_id.month": 1 } }
+        // ])
+
+        if (!req.body.user) {
+            return res.status(400).json({
+                status: "error",
+                message: "User email is required"
+            });
+        }
+        const user = await db.User.findOne({ where: { emailId: req.body.user } });
+        if (!user) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid User"
+            });
+        }
+        const monthlyExpense = await Expense.findAll({
+            attributes: [
+                [sequelize.literal('EXTRACT(MONTH FROM "expense_date")'), 'month'],
+                [sequelize.literal('EXTRACT(YEAR FROM "expense_date")'), 'year'],
+                [sequelize.fn('SUM', sequelize.col('expense_per_member')), 'amount']
+            ],
+            where: {
+                expenseMembers: {
+                    [Op.contains]: [req.body.user]
                 }
             },
-            {
-                $group: {
-                    _id: {
-                        month: {
-                            $month: "$expenseDate"
-                        },
-                        year: {
-                            $year: "$expenseDate"
-                        }
-                    },
-                    amount: {
-                        $sum: "$expensePerMember"
-                    }
-                }
-            },
-            { $sort : {"_id.month" : 1 } }
-        ])
+            group: [
+                sequelize.literal('EXTRACT(MONTH FROM "expense_date")'),
+                sequelize.literal('EXTRACT(YEAR FROM "expense_date")')
+            ],
+            order: [['year', 'ASC'], ['month', 'ASC']],
+            raw: true
+        });
         res.status(200).json({
             status: "success",
             data: monthlyExpense
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -533,40 +932,85 @@ Returns : Expense per month
 */
 exports.userDailyExpense = async (req, res) => {
     try {
-        var dailyExpense = await model.Expense.aggregate([{
-                $match: {
-                    expenseMembers: req.body.user,
-                    expenseDate: {
-                        $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)), 
-                        $lte: new Date()}
+        /** changed */
+        // var dailyExpense = await model.Expense.aggregate([{
+        //     $match: {
+        //         expenseMembers: req.body.user,
+        //         expenseDate: {
+        //             $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+        //             $lte: new Date()
+        //         }
+        //     }
+        // },
+        // {
+        //     $group: {
+        //         _id: {
+        //             date: {
+        //                 $dayOfMonth: "$expenseDate"
+        //             },
+        //             month: {
+        //                 $month: "$expenseDate"
+        //             },
+        //             year: {
+        //                 $year: "$expenseDate"
+        //             }
+        //         },
+        //         amount: {
+        //             $sum: "$expenseAmount"
+        //         }
+        //     }
+        // },
+        // { $sort: { "_id.month": 1, "_id.date": 1 } }
+        // ])
+        if (!req.body.user) {
+            return res.status(400).json({
+                status: "error",
+                message: "User email is required"
+            });
+        }
+        const user = await db.User.findOne({ where: { emailId: req.body.user } });
+        if (!user) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid User"
+            });
+        }
+        const dailyExpense = await Expense.findAll({
+            attributes: [
+                [sequelize.literal('EXTRACT(DAY FROM "expense_date")'), 'date'],
+                [sequelize.literal('EXTRACT(MONTH FROM "expense_date")'), 'month'],
+                [sequelize.literal('EXTRACT(YEAR FROM "expense_date")'), 'year'],
+                [sequelize.fn('SUM', sequelize.col('expense_per_member')), 'amount']
+            ],
+            where: {
+                expenseMembers: {
+                    [Op.contains]: [req.body.user]
+                },
+                expenseDate: {
+                    [Op.gte]: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+                    [Op.lte]: new Date()
                 }
             },
-            {
-                $group: {
-                    _id: {
-                        date: {
-                            $dayOfMonth: "$expenseDate"
-                        },
-                        month: {
-                            $month: "$expenseDate"
-                        },
-                        year: {
-                            $year: "$expenseDate"
-                        }
-                    },
-                    amount: {
-                        $sum: "$expenseAmount"
-                    }
-                }
-            },
-            { $sort : {"_id.month" :1, "_id.date" : 1  } }
-        ])
+            group: [
+                sequelize.literal('EXTRACT(DAY FROM "expense_date")'),
+                sequelize.literal('EXTRACT(MONTH FROM "expense_date")'),
+                sequelize.literal('EXTRACT(YEAR FROM "expense_date")')
+            ],
+            order: [
+                ['year', 'ASC'],
+                ['month', 'ASC'],
+                ['date', 'ASC']
+            ],
+            raw: true
+        });
         res.status(200).json({
             status: "success",
             data: dailyExpense
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+        // Pass the entire error object to the logger
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })

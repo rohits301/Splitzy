@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Expenses', {
+    await queryInterface.createTable('settlements', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -12,35 +12,17 @@ module.exports = {
       groupId: {
         type: Sequelize.INTEGER
       },
-      expenseName: {
+      settleTo: {
         type: Sequelize.STRING
       },
-      expenseDescription: {
-        type: Sequelize.TEXT
-      },
-      expenseAmount: {
-        type: Sequelize.FLOAT
-      },
-      expenseCategory: {
+      settleFrom: {
         type: Sequelize.STRING
       },
-      expenseCurrency: {
-        type: Sequelize.STRING
-      },
-      expenseDate: {
+      settleDate: {
         type: Sequelize.DATE
       },
-      expenseOwner: {
-        type: Sequelize.STRING
-      },
-      expenseMembers: {
-        type: Sequelize.JSONB
-      },
-      expensePerMember: {
+      settleAmount: {
         type: Sequelize.FLOAT
-      },
-      expenseType: {
-        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,
@@ -53,6 +35,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Expenses');
+    await queryInterface.dropTable('settlements');
   }
 };

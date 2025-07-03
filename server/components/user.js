@@ -20,6 +20,8 @@ exports.userReg = async (req, res) => {
         // const user = await model.User.findOne({
         //     emailId: req.body.emailId
         // })
+        console.log('User model:', User);
+
         const user = await User.findOne({
             where: { 
                 emailId: req.body.emailId
@@ -55,7 +57,9 @@ exports.userReg = async (req, res) => {
             }
         }
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+                // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -106,7 +110,9 @@ exports.userLogin = async (req, res) => {
             })
         }
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message} ${err.stack}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message} ${err.stack}`)
+                // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -147,7 +153,9 @@ exports.viewUser = async (req, res) => {
             user: user
         })
     } catch(err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+                // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -192,7 +200,9 @@ exports.emailList = async (req, res) => {
             user: emailList
         })
     } catch(err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+                // Pass the entire error object to the logger
+                logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -230,7 +240,9 @@ exports.deleteUser = async (req, res) => {
             response: deleteUser
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+                // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -284,7 +296,9 @@ exports.editUser = async (req, res) => {
             })
         }
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
+                // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -355,7 +369,9 @@ exports.updatePassword = async (req, res) => {
             updatedCount: updateUser[0]
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message} ${err.stack}`)
+        // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message} ${err.stack}`)
+                // Pass the entire error object to the logger
+        logger.error(err); 
         res.status(err.status || 500).json({
             message: err.message
         })

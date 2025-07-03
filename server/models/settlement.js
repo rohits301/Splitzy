@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Groups', // name of the table in the database
+        model: 'groups', // name of the table in the database
         key: 'id' // primary key in the Groups table
       }
     },
@@ -42,6 +42,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Settlement',
+    tableName: 'settlements', // optional: specify the table name if different from model name
+    freezeTableName: true, // optional: prevents Sequelize from pluralizing the table name
     timestamps: true, // ensures createdAt and updatedAt are added
     underscored: true, // optional: creates snake_case columns like created_at
   });

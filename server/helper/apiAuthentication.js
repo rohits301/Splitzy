@@ -13,7 +13,9 @@ exports.validateToken = (req, res, next) => {
     } else {
         //Checking if authorization is present in the header if not present then access is forbidden 
         if (req.headers["authorization"] == null) {
-            logger.error(`URL : ${req.originalUrl} | API Authentication Fail | message: Token not present`)
+            // logger.withCaller().error(`URL : ${req.originalUrl} | API Authentication Fail | message: Token not present`)
+            // Pass the entire error object to the logger
+            logger.error(err); 
             res.status(403).json({
                 message: "Token not present"
             })
@@ -27,8 +29,10 @@ exports.validateToken = (req, res, next) => {
             //function to verify the token 
             jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
                 if (err) {
-                    logger.error(`URL : ${req.originalUrl} | API Authentication Fail | message: Invalid Token`)
-                    res.sendStatus(403).json({
+                    // logger.withCaller().error(`URL : ${req.originalUrl} | API Authentication Fail | message: Invalid Token`)
+                    // Pass the entire error object to the logger
+                    logger.error(err); 
+                    res.status(403).json({
                         message: "Invalid Token"
                     })
                     res.end();

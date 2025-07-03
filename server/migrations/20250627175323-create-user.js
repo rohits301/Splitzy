@@ -2,36 +2,21 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Groups', {
+    await queryInterface.createTable('users', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      groupName: {
+      firstName: {
         type: Sequelize.STRING
       },
-      groupDescription: {
-        type: Sequelize.TEXT
-      },
-      groupCurrency: {
+      lastName: {
         type: Sequelize.STRING
       },
-      groupOwner: {
+      email: {
         type: Sequelize.STRING
-      },
-      groupMembers: {
-        type: Sequelize.JSONB
-      },
-      groupCategory: {
-        type: Sequelize.STRING
-      },
-      groupTotal: {
-        type: Sequelize.FLOAT
-      },
-      split: {
-        type: Sequelize.JSONB
       },
       createdAt: {
         allowNull: false,
@@ -44,6 +29,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Groups');
+    await queryInterface.dropTable('users');
   }
 };
