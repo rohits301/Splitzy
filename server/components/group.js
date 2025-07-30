@@ -3,7 +3,7 @@ const { User, Group, Settlement } = require('../models')
 const validator = require('../helper/validation')
 const logger = require('../helper/logger')
 const splitCalculator = require('../helper/split')
-const { Op } = require('sequelize'); // for groupMembers JSONB array operations
+const { Op, Transaction } = require('sequelize'); // for groupMembers JSONB array operations
 // const { User, Settlement } = require('../model/schema')
 
 /*
@@ -68,7 +68,7 @@ exports.createGroup = async (req, res) => {
     } catch (err) {
         // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message} ${err.stack}`)
         // Pass the entire error object to the logger
-        logger.error(err); 
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -89,7 +89,7 @@ exports.viewGroup = async (req, res) => {
         //     _id: req.body.id
         // })
         const group = await Group.findOne({
-            where : { id: req.body.id }
+            where: { id: req.body.id }
         });
         if (!group || req.body.id == null) {
             var err = new Error('Invalid Group Id')
@@ -100,10 +100,10 @@ exports.viewGroup = async (req, res) => {
             status: "Success",
             group: group,
         })
-    } catch(err) {
+    } catch (err) {
         // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
         // Pass the entire error object to the logger
-        logger.error(err); 
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -151,7 +151,7 @@ exports.findUserGroup = async (req, res) => {
     } catch (err) {
         // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
         // Pass the entire error object to the logger
-        logger.error(err); 
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -200,7 +200,7 @@ exports.editGroup = async (req, res) => {
 
                 //Check if a new group member is added to the group and missing in the split 
                 //split is used since json is stored as an array in the DB - ideally there should only be one element in the split array hence we are using the index number
-                /** changed */ 
+                /** changed */
                 // if (!editGroup.split.hasOwnProperty(user)) {
                 //     //adding the missing members to the split and init with value 0
                 //     editGroup.split[user] = 0
@@ -252,7 +252,7 @@ exports.editGroup = async (req, res) => {
     } catch (err) {
         // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
         // Pass the entire error object to the logger
-        logger.error(err); 
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -294,7 +294,7 @@ exports.deleteGroup = async (req, res) => {
     } catch (err) {
         // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
         // Pass the entire error object to the logger
-        logger.error(err); 
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -307,8 +307,8 @@ Make Settlement Function
 This function is used to make the settlements in the group 
 
 */
-exports.makeSettlement = async(req, res) =>{
-    try{
+exports.makeSettlement = async (req, res) => {
+    try {
         /** changed */
         // var reqBody = new model.Settlement(req.body)
         const reqBody = Settlement.build(req.body);
@@ -329,30 +329,30 @@ exports.makeSettlement = async(req, res) =>{
             err.status = 400
             throw err
         }
-       
-       group.split[req.body.settleFrom] += req.body.settleAmount
-       group.split[req.body.settleTo] -= req.body.settleAmount
 
-       /** changed */
-    //    var id = await model.Settlement.create(reqBody)
-       const id = await Settlement.build(reqBody).save();
-    //    var update_response = await Group.updateOne({_id: group._id}, {$set:{split: group.split}})
+        group.split[req.body.settleFrom] += req.body.settleAmount
+        group.split[req.body.settleTo] -= req.body.settleAmount
+
+        /** changed */
+        //    var id = await model.Settlement.create(reqBody)
+        const id = await Settlement.build(reqBody).save();
+        //    var update_response = await Group.updateOne({_id: group._id}, {$set:{split: group.split}})
         const updatedResponse = await Group.update({
             split: group.split
         }, {
             where: { id: group.id }
         });
 
-       res.status(200).json({
-        message: "Settlement successfully!",
-        status: "Success",
-        update: updatedResponse,
-        response: id
-    })
-    }catch (err) {
+        res.status(200).json({
+            message: "Settlement successfully!",
+            status: "Success",
+            update: updatedResponse,
+            response: id
+        })
+    } catch (err) {
         // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
         // Pass the entire error object to the logger
-        logger.error(err); 
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })
@@ -371,7 +371,7 @@ Accepts groupId
 it will add split to the owner and deduct from the remaining members 
 This function is not a direct API hit - it is called by add expense function 
 */
-exports.addSplit = async (groupId, expenseAmount, expenseOwner, expenseMembers) => {
+exports.addSplit = async (groupId, expenseAmount, expenseOwner, expenseMembers, t = null) => {
     /** changed */
     // var group = await model.Group.findOne({
     //     _id: groupId
@@ -379,24 +379,23 @@ exports.addSplit = async (groupId, expenseAmount, expenseOwner, expenseMembers) 
     const group = await Group.findOne({
         where: { id: groupId }
     });
-    
-    group.groupTotal += expenseAmount
-    group.split[expenseOwner] += expenseAmount
-    expensePerPerson = expenseAmount / expenseMembers.length
-    expensePerPerson = Math.round((expensePerPerson  + Number.EPSILON) * 100) / 100;
+
+    group.groupTotal += expenseAmount;
+    group.split[expenseOwner] += expenseAmount;
+    expensePerPerson = expenseAmount / expenseMembers.length;
+    expensePerPerson = Math.round((expensePerPerson + Number.EPSILON) * 100) / 100;
     //Updating the split values per user 
     for (var user of expenseMembers) {
-        group.split[user] -= expensePerPerson
+        group.split[user] -= expensePerPerson;
     }
-    
+
     //Nullifying split - check if the group balance is zero else added the diff to owner 
-    let bal=0
-    for(val of Object.entries(group.split))
-    {
-        bal += val[1]
+    let balance = 0;
+    for (val of Object.entries(group.split)) {
+        balance += val[1];
     }
-    group.split[expenseOwner] -= bal
-    group.split[expenseOwner] = Math.round((group.split[expenseOwner]  + Number.EPSILON) * 100) / 100;
+    group.split[expenseOwner] -= balance;
+    group.split[expenseOwner] = Math.round((group.split[expenseOwner] + Number.EPSILON) * 100) / 100;
     //Updating back the split values to the group 
     /** changed */
     // return await model.Group.updateOne({
@@ -405,9 +404,11 @@ exports.addSplit = async (groupId, expenseAmount, expenseOwner, expenseMembers) 
     return await Group.update({
         split: group.split,
         groupTotal: group.groupTotal
-    }, {
-        where: { id: groupId }
-    });
+    },
+        {
+            where: { id: groupId },
+            transaction: t
+        });
 }
 
 /*
@@ -416,7 +417,7 @@ This function is used to clear the split caused due to a prev expense
 This is used guring edit expense or delete expense operation 
 Works in the reverse of addSplit function 
 */
-exports.clearSplit = async (groupId, expenseAmount, expenseOwner, expenseMembers) => {
+exports.clearSplit = async (groupId, expenseAmount, expenseOwner, expenseMembers, t = null) => {
     /** changed */
     // var group = await model.Group.findOne({
     //     _id: groupId
@@ -427,20 +428,19 @@ exports.clearSplit = async (groupId, expenseAmount, expenseOwner, expenseMembers
     group.groupTotal -= expenseAmount
     group.split[expenseOwner] -= expenseAmount
     expensePerPerson = expenseAmount / expenseMembers.length
-    expensePerPerson = Math.round((expensePerPerson  + Number.EPSILON) * 100) / 100;
+    expensePerPerson = Math.round((expensePerPerson + Number.EPSILON) * 100) / 100;
     //Updating the split values per user 
     for (var user of expenseMembers) {
         group.split[user] += expensePerPerson
     }
 
     //Nullifying split - check if the group balance is zero else added the diff to owner 
-    let bal=0
-    for(val of Object.entries(group.split))
-    {
-        bal += val[1]
+    let balance = 0
+    for (val of Object.entries(group.split)) {
+        balance += val[1]
     }
-    group.split[expenseOwner] -= bal
-    group.split[expenseOwner] = Math.round((group.split[expenseOwner]  + Number.EPSILON) * 100) / 100;
+    group.split[expenseOwner] -= balance
+    group.split[expenseOwner] = Math.round((group.split[expenseOwner] + Number.EPSILON) * 100) / 100;
     //Updating back the split values to the group 
     /** changed */
     // return await model.Group.updateOne({
@@ -450,7 +450,8 @@ exports.clearSplit = async (groupId, expenseAmount, expenseOwner, expenseMembers
         split: group.split,
         groupTotal: group.groupTotal
     }, {
-        where: { id: groupId }
+        where: { id: groupId },
+        transaction: t
     });
 }
 
@@ -461,7 +462,7 @@ This function is used to calculate the balnce sheet in a group, who owes whom
 Accepts : group Id 
 return : group settlement detals
 */
-exports.groupBalanceSheet = async(req, res) =>{
+exports.groupBalanceSheet = async (req, res) => {
     try {
         /** changed */
         // const group = await model.Group.findOne({
@@ -482,7 +483,7 @@ exports.groupBalanceSheet = async(req, res) =>{
     } catch (err) {
         // logger.withCaller().error(`URL : ${req.originalUrl} | status : ${err.status} | message: ${err.message}`)
         // Pass the entire error object to the logger
-        logger.error(err); 
+        logger.error(err);
         res.status(err.status || 500).json({
             message: err.message
         })

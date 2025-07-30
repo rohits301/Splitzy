@@ -201,19 +201,17 @@ export default function AddExpense() {
                   name="expenseAmount"
                   id="outlined-basic"
                   type="number"
-
                   label="Expense Amount"
                   variant="outlined"
                   {...getFieldProps('expenseAmount')}
-
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
                         {currencyFind(groupCurrency)}
                       </InputAdornment>
                     ),
+                    readOnly: false // user can enter amount, but not change currency
                   }}
-
                   error={Boolean(touched.expenseAmount && errors.expenseAmount)}
                   helperText={touched.expenseAmount && errors.expenseAmount}
                 />

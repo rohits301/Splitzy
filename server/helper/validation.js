@@ -161,3 +161,27 @@ exports.validateAllMembers = async (groupId, membersArray) => {
         }
     }
 };
+
+exports.validateExpenseInput = (expense) => {
+    if (!expense.expenseName) {
+        throw new Error("Expense name is required");
+    }
+    if (!expense.expenseAmount && expense.expenseAmount !== 0) {
+        throw new Error("Expense amount is required");
+    }
+    if (expense.expenseAmount <= 0) {
+        throw new Error("Expense amount must be greater than zero");
+    }
+    if (!expense.expenseOwner) {
+        throw new Error("Expense owner is required");
+    }
+    if (!Array.isArray(expense.expenseMembers) || expense.expenseMembers.length === 0) {
+        throw new Error("Expense members must be a non-empty array");
+    }
+    const uniqueMembers = new Set(expense.expenseMembers);
+    if (uniqueMembers.size !== expense.expenseMembers.length) {
+        throw new Error("Expense members must not contain duplicates");
+    }
+    // Add more checks as needed
+    return true;
+}
